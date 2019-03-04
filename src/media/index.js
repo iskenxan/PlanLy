@@ -1,0 +1,1 @@
+export const ACCENT_GRADIENT = require('./accent_gradient.png');
