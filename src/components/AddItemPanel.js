@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import { View, Image } from 'react-native';
+import { View, Image, Animated } from 'react-native';
 import { ACCENT_GRADIENT } from '../media'
-import { Text, Input, Slider } from 'react-native-elements';
-
+import { Text } from 'react-native-elements';
+import AddItemCard from './AddItemCard';
 
 
 class AddItemPanel extends Component {
@@ -11,12 +11,17 @@ class AddItemPanel extends Component {
         super(props);
         this.state = {
             title: '',
-            duration: 0,
+            duration: 0, //minutes
         }
     }
 
 
+    onDurationChanged = (value) => this.setState({ duration: value })
+
+
     render() {
+        const { duration } = this.state;
+
         return (
             <View style={styles.container}>
                 <Image
@@ -28,34 +33,13 @@ class AddItemPanel extends Component {
                         style={styles.title}>
                         Fill out the card and drag it over when ready
                     </Text>
-                    <View style={styles.card}>
-                        <View style={{
-                            flexDirection: 'row',
-                            justifyContent: 'flex-start',
-                            alignItems: 'center'
-                        }}>
-                            <Text>Title:</Text>
-                            <Input
-                                containerStyle={{ flex: 1, width: null }}
-                                inputStyle={styles.input}
-                                placeholder='Your task title'
-                            />
-                        </View>
-                        <View style={{
-                            flexDirection: 'row',
-                            justifyContent: 'flex-start',
-                            alignItems: 'center'
-                        }}>
-                            <Text>Duration:</Text>
-                            <Slider
-                                style={{
-                                    flex:1,
-                                }}
-                                // value={this.state.value}
-                                // onValueChange={value => this.setState({ value })}
-                            />
-                        </View>
-                    </View>
+                    <Animated.View
+                        style={this.props.layoutStyle}
+                        {...this.props.panHandlers}>
+                        <AddItemCard
+                            duration={duration}
+                            onDurationChanged={this.onDurationChanged} />
+                    </Animated.View>
                 </View>
             </View>
         )
@@ -88,17 +72,6 @@ const styles = {
         fontWeight: '800',
         fontSize: 16,
         alignSelf: 'center'
-    },
-    card: {
-        padding: 10,
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        height: 130,
-        maxHeight: 130,
-        alignItems: 'center',
-    },
-    input: {
-        fontSize: 14,
     }
 }
 
