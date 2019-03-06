@@ -1,11 +1,10 @@
 import React, { Component } from 'react';
-import { View, ScrollView, PanResponder, Animated, Dimensions } from 'react-native';
+import { View, ScrollView, PanResponder, Animated } from 'react-native';
 import TimeLine from './Timeline';
 import { Provider } from 'react-redux';
 import { createStore } from 'redux';
 import reducers from '../reducers';
 import AddItemPanel from './AddItemPanel';
-
 
 
 class App extends Component {
@@ -19,18 +18,21 @@ class App extends Component {
     this.panResponder = PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onPanResponderMove: (event, gesture) => {
-        let { dragging } = this.state;
+        const { dragging } = this.state;
         if (!dragging) {
-          this.setState(dragging);
+          this.setState({ dragging: true });
         }
         this.position.setValue({ x: gesture.dx, y: gesture.dy });
       },
-      onPanResponderRelease: (e, gesture) => { }
+      onPanResponderRelease: (e, gesture) => {
+        this.setState({ dragging: false })
+      }
     });
   }
 
 
   render() {
+    const { dragging, dropWidth } = this.state;
     return (
       <Provider store={createStore(reducers)}>
         <View style={{ flex: 1 }}>
@@ -39,11 +41,16 @@ class App extends Component {
             <View style={{ flex: 1, width: null, height: null, backgroundColor: '#A5B3BC' }}
               onLayout={event => {
                 let { width } = event.nativeEvent.layout;
+                console.log(width)
                 this.setState({ dropWidth: width })
               }}>
             </View>
           </ScrollView>
-          <AddItemPanel layoutStyle={this.position.getLayout()} panHandlers={this.panResponder.panHandlers} />
+          <AddItemPanel
+            dropWidth={dropWidth}
+            dragging={dragging}
+            layoutStyle={this.position.getLayout()}
+            panHandlers={this.panResponder.panHandlers} />
         </View>
       </Provider>
     )

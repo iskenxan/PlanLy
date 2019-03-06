@@ -9,18 +9,11 @@ class AddItemPanel extends Component {
 
     constructor(props) {
         super(props);
-        this.state = {
-            title: '',
-            duration: 0, //minutes
-        }
+        
     }
 
 
-    onDurationChanged = (value) => this.setState({ duration: value })
-
-
     render() {
-        const { duration } = this.state;
 
         return (
             <View style={styles.container}>
@@ -37,8 +30,7 @@ class AddItemPanel extends Component {
                         style={this.props.layoutStyle}
                         {...this.props.panHandlers}>
                         <AddItemCard
-                            duration={duration}
-                            onDurationChanged={this.onDurationChanged} />
+                            {...this.props} />
                     </Animated.View>
                 </View>
             </View>

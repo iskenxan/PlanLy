@@ -51,7 +51,7 @@ class TimeLine extends Component {
         const { container } = styles;
         this.getTimes();
         return (
-            <View style={{ flexDirection: 'row', width: 70 }}>
+            <View style={{ flexDirection: 'row', width: 50 }}>
                 <Divider
                     style={styles.divider}
                 />
@@ -69,21 +69,22 @@ const styles = {
         justifyDirection: 'column',
         justifyContent: 'space-evenly',
         alignItems: 'flex-end',
-        width: 70,
-        maxWidth: 70,
+        width: 50,
+        maxWidth: 50,
         alignSelf: 'flex-start'
     },
     itemContainer: {
-        marginBottom: 25,
+        marginBottom: 35,
         flexDirection: 'row',
         justifyContent: 'flex-start',
-        width: 70,
+        width: 50,
         alignItems: 'center'
     },
     text: {
-        width: 60,
-        maxWidth: 60,
-        height: 20,
+        fontSize:9,
+        width: 40,
+        maxWidth: 40,
+        height: 10,
         color: '#8493A8'
     },
     divider: {
