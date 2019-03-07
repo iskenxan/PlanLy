@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Text, Input, Slider } from 'react-native-elements';
 import { View, Keyboard } from 'react-native';
-
+import {  getDurationText, calculateCardHeight } from '../utils/Formatter'
 
 
 class AddItemCard extends Component {
@@ -11,22 +11,6 @@ class AddItemCard extends Component {
             title: '',
             duration: 0, //minutes
         }
-    }
-
-
-    getDurationText = (duration) => {
-        duration = Math.floor(duration);
-
-        if (duration < 60) {
-            return `${duration} mins`
-        }
-        const hours = Math.floor(duration / 60);
-        const minutes = duration % 60;
-        if (minutes === 0) {
-            return `${hours} hr`;
-        }
-
-        return `${hours} hr, ${minutes} mins`;
     }
 
 
@@ -70,21 +54,27 @@ class AddItemCard extends Component {
                         style={styles.slider}
                     />
                 </View>
-                <Text>{this.getDurationText(duration)}</Text>
+                <Text>{getDurationText(duration)}</Text>
             </View>
         );
     }
 
 
     getDragCard = (dropWidth) => {
+        const { onDragStarted } = this.props;
         const { title, duration } = this.state;
+
+        onDragStarted(title, duration)
         const cardStyle = { ...styles.card };
         cardStyle.width = dropWidth;
         cardStyle.justifyContent = 'center';
+
+        const height = calculateCardHeight(duration);
+        cardStyle.height = height;
         return (
             <View style={cardStyle}>
                 <Text>{title}</Text>
-                <Text>{this.getDurationText(duration)}</Text>
+                <Text>{getDurationText(duration)}</Text>
             </View>
         );
     }
@@ -93,11 +83,12 @@ class AddItemCard extends Component {
     render() {
         const {
             dragging,
-            dropWidth
+            dropWidth,
+            drag,
         } = this.props;
 
         if (dragging) {
-            return this.getDragCard(dropWidth);
+            return this.getDragCard(drag.dropWidth);
         }
 
         return this.getInputCard();
@@ -111,7 +102,7 @@ const styles = {
         backgroundColor: '#fff',
         borderRadius: 10,
         height: 130,
-        maxHeight: 130,
+        maxHeight: 180,
         alignItems: 'center',
     },
     input: {

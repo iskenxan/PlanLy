@@ -1,15 +1,25 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
 import { View, Image, Animated } from 'react-native';
 import { ACCENT_GRADIENT } from '../media'
 import { Text } from 'react-native-elements';
 import AddItemCard from './AddItemCard';
+import { onTaskDataReceived } from '../actions/DragAnimationActions'
+
 
 
 class AddItemPanel extends Component {
 
     constructor(props) {
         super(props);
+
+    }
+
+
+    onDragStarted = (title, duration) => {
         
+        this.props.onTaskDataReceived(title, duration)
     }
 
 
@@ -30,7 +40,8 @@ class AddItemPanel extends Component {
                         style={this.props.layoutStyle}
                         {...this.props.panHandlers}>
                         <AddItemCard
-                            {...this.props} />
+                            {...this.props}
+                            onDragStarted={this.onDragStarted} />
                     </Animated.View>
                 </View>
             </View>
@@ -67,4 +78,18 @@ const styles = {
     }
 }
 
-export default AddItemPanel;
+
+function mapStateToProps(state) {
+    return {
+        drag: state.drag,
+    };
+}
+
+
+function mapDispatchToProps() {
+    return bindActionCreators({
+        onTaskDataReceived,
+    });
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(AddItemPanel);
