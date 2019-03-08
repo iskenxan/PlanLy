@@ -6,6 +6,7 @@ import AddItemPanel from './AddItemPanel';
 import TaskContainer from './TaskContainer'
 
 
+
 class Root extends Component {
     constructor(props) {
         super(props);
@@ -14,6 +15,7 @@ class Root extends Component {
         this.state = {
             dropWidth: 0,
             dragging: false,
+            taskDropped: false,
         }
 
         this.panResponder = PanResponder.create({
@@ -21,25 +23,31 @@ class Root extends Component {
             onPanResponderMove: (event, gesture) => {
                 const { dragging } = this.state;
                 if (!dragging) {
-                    this.setState({ dragging: true });
+                    this.setState({ dragging: true, taskDropped: false });
                 }
                 this.position.setValue({ x: gesture.dx, y: gesture.dy });
             },
             onPanResponderRelease: (e, gesture) => {
-                this.setState({ dragging: false })
+                if (gesture.dy < -210) {
+                    this.setState({ dragging: false, taskDropped: true })
+                } else {
+                    this.position.setValue({ x: 0, y: 0 });
+                    this.setState({ dragging: false })
+                }
             }
         });
     }
 
 
     render() {
-        const { dragging, dropWidth } = this.state;
+        const { dragging, dropWidth, taskDropped } = this.state;
 
         return (
             <View style={{ flex: 1 }}>
                 <ScrollView contentContainerStyle={styles.scroll}>
                     <TimeLine />
-                    <TaskContainer />
+                    <TaskContainer
+                         taskDropped={taskDropped}/>
                 </ScrollView>
                 <AddItemPanel
                     dropWidth={dropWidth}
