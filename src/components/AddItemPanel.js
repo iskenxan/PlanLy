@@ -13,12 +13,10 @@ class AddItemPanel extends Component {
 
     constructor(props) {
         super(props);
-
     }
 
 
     onDragStarted = (title, duration) => {
-        
         this.props.onTaskDataReceived(title, duration)
     }
 
@@ -86,10 +84,10 @@ function mapStateToProps(state) {
 }
 
 
-function mapDispatchToProps() {
+function mapDispatchToProps(dispatch) {
     return bindActionCreators({
         onTaskDataReceived,
-    });
+    }, dispatch);
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(AddItemPanel);

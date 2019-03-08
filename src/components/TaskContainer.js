@@ -42,10 +42,10 @@ function mapStateToProps(state) {
 }
 
 
-function mapDispatchToProps() {
+function mapDispatchToProps(dispatch) {
     return bindActionCreators({
         onDropWidth,
-    })
+    }, dispatch)
 }
 
 

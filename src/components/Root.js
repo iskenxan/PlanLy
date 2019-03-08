@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
-import { connect } from 'redux';
+import { connect } from 'react-redux';
 import { View, ScrollView, PanResponder, Animated } from 'react-native';
 import TimeLine from './Timeline';
 import AddItemPanel from './AddItemPanel';
+import TaskContainer from './TaskContainer'
 
 
 class Root extends Component {
@@ -38,10 +39,7 @@ class Root extends Component {
             <View style={{ flex: 1 }}>
                 <ScrollView contentContainerStyle={styles.scroll}>
                     <TimeLine />
-                    <View style={}
-                        onLayout={this.onLayout}>
-
-                    </View>
+                    <TaskContainer />
                 </ScrollView>
                 <AddItemPanel
                     dropWidth={dropWidth}

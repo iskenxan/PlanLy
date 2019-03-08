@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Text, Input, Slider } from 'react-native-elements';
 import { View, Keyboard } from 'react-native';
-import {  getDurationText, calculateCardHeight } from '../utils/Formatter'
+import { getDurationText, calculateCardHeight } from '../utils/Formatter'
 
 
 class AddItemCard extends Component {
@@ -10,6 +10,14 @@ class AddItemCard extends Component {
         this.state = {
             title: '',
             duration: 0, //minutes
+        }
+    }
+
+
+    componentWillReceiveProps(props) {
+        if (props.dragging && !this.props.dragging) {
+            const { title, duration } = this.state;
+            this.props.onDragStarted(title, duration)
         }
     }
 
@@ -61,10 +69,8 @@ class AddItemCard extends Component {
 
 
     getDragCard = (dropWidth) => {
-        const { onDragStarted } = this.props;
         const { title, duration } = this.state;
 
-        onDragStarted(title, duration)
         const cardStyle = { ...styles.card };
         cardStyle.width = dropWidth;
         cardStyle.justifyContent = 'center';
@@ -83,7 +89,6 @@ class AddItemCard extends Component {
     render() {
         const {
             dragging,
-            dropWidth,
             drag,
         } = this.props;
 
