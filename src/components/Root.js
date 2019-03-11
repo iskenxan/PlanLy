@@ -19,6 +19,7 @@ class Root extends Component {
             taskDropped: false,
             dropY: -1,
             scrollY: 0,
+            scrollHeight: 0,
         }
 
         this.panResponder = PanResponder.create({
@@ -59,15 +60,29 @@ class Root extends Component {
     }
 
 
+    handleScrollContentSizeChange = (width, height) => {
+        this.setState({ scrollHeight: height })
+    }
+
+
     render() {
-        const { dragging, dropWidth, taskDropped, dropY } = this.state;
+        const { 
+            dragging, 
+            dropWidth, 
+            taskDropped, 
+            dropY,
+            scrollHeight
+        } = this.state;
+
         return (
             <View style={{ flex: 1 }}>
                 <ScrollView
                     contentContainerStyle={styles.scroll}
-                    onScroll={this.handleScroll}>
+                    onScroll={this.handleScroll}
+                    onContentSizeChange={this.handleScrollContentSizeChange}>
                     <TimeLine />
                     <TaskContainer
+                        scrollHeight={scrollHeight}
                         dropY={dropY}
                         taskDropped={taskDropped} />
                 </ScrollView>
