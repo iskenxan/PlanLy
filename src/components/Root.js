@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { View, ScrollView, PanResponder, Animated } from 'react-native';
+import { View, ScrollView, PanResponder, Animated, Dimensions } from 'react-native';
 import TimeLine from './Timeline';
 import AddItemPanel from './AddItemPanel';
 import TaskContainer from './TaskContainer'
 
+const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 
 class Root extends Component {
@@ -16,6 +17,8 @@ class Root extends Component {
             dropWidth: 0,
             dragging: false,
             taskDropped: false,
+            dropY: -1,
+            scrollY: 0,
         }
 
         this.panResponder = PanResponder.create({
@@ -28,26 +31,45 @@ class Root extends Component {
                 this.position.setValue({ x: gesture.dx, y: gesture.dy });
             },
             onPanResponderRelease: (e, gesture) => {
-                if (gesture.dy < -210) {
-                    this.setState({ dragging: false, taskDropped: true })
+                console.log(gesture)
+                const gestureY = gesture.dy;
+                console.log(`height: ${SCREEN_HEIGHT}`)
+                console.log('gesture: ' + gestureY)
+                if (gestureY < -210) {
+                    const { scrollY } = this.state;
+                    console.log(`scroll: ${scrollY}`)
+                    // const screenY = SCREEN_HEIGHT - (gestureY * -1);
+                    const screenY = gesture.moveY;
+                    const y = scrollY + screenY;
+                    console.log(`dropY:${y}`)
+                    this.setState({ dragging: false, taskDropped: true, dropY: y })
                 } else {
-                    this.position.setValue({ x: 0, y: 0 });
                     this.setState({ dragging: false })
                 }
+                this.position.setValue({ x: 0, y: 0 });
             }
         });
     }
 
 
-    render() {
-        const { dragging, dropWidth, taskDropped } = this.state;
+    handleScroll = (event) => {
+        const { y } = event.nativeEvent.contentOffset;
+        console.log(`scrolling:${y}`)
+        this.setState({ scrollY: y })
+    }
 
+
+    render() {
+        const { dragging, dropWidth, taskDropped, dropY } = this.state;
         return (
             <View style={{ flex: 1 }}>
-                <ScrollView contentContainerStyle={styles.scroll}>
+                <ScrollView
+                    contentContainerStyle={styles.scroll}
+                    onScroll={this.handleScroll}>
                     <TimeLine />
                     <TaskContainer
-                         taskDropped={taskDropped}/>
+                        dropY={dropY}
+                        taskDropped={taskDropped} />
                 </ScrollView>
                 <AddItemPanel
                     dropWidth={dropWidth}

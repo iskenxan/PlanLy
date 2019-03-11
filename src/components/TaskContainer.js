@@ -17,17 +17,23 @@ class TaskContainer extends Component {
 
     componentWillReceiveProps(props) {
         if (props.taskDropped) {
-            const { duration, title } = this.props;
+            const { duration, title } = this.props.drag;
             const height = calculateCardHeight(duration)
-            this.addCard(height, title, duration);
+            this.addCard(height, title, duration, props.dropY);
         }
     }
 
 
-    addCard = (height, title, duration) => {
+    addCard = (height, title, duration, dropY) => {
         const newStack = [...this.state.cards];
+        const cardStyle = { ...styles.card };
+        cardStyle.height = height;
+        const substitute = height > 180 ? 150 : height - 10
+        const y = dropY - substitute;
+        cardStyle.top = y
+        console.log('TaskContainer:' + y)
         const card = (
-            <View style={styles.card}>
+            <View key={dropY} style={cardStyle}>
                 <Text>{title}</Text>
                 <Text>{getDurationText(duration)}</Text>
             </View>
@@ -40,7 +46,6 @@ class TaskContainer extends Component {
 
     onLayout = (event) => {
         let { width } = event.nativeEvent.layout;
-        console.log(this.props)
         this.props.onDropWidth(width)
     }
 
@@ -48,7 +53,7 @@ class TaskContainer extends Component {
     render() {
         return (
             <View onLayout={this.onLayout} style={styles.container}>
-            {this.state.cards}
+                {this.state.cards}
             </View>
         )
     }
@@ -63,12 +68,13 @@ const styles = {
         backgroundColor: '#A5B3BC'
     },
     card: {
+        position: 'absolute',
         padding: 10,
         backgroundColor: '#fff',
         borderRadius: 10,
-        height: 130,
-        maxHeight: 180,
         alignItems: 'center',
+        left: 5,
+        right: 5,
     },
 }
 
