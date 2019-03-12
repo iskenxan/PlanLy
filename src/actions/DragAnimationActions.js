@@ -5,7 +5,6 @@ export const DROP_WIDTH_RECEIVED = "action:drop_width_received"
 
 
 export const onDropWidth = (width) => {
-    console.log('dropWidth')
     return {
         type: DROP_WIDTH_RECEIVED,
         payload: width

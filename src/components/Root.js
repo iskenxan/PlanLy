@@ -32,17 +32,11 @@ class Root extends Component {
                 this.position.setValue({ x: gesture.dx, y: gesture.dy });
             },
             onPanResponderRelease: (e, gesture) => {
-                console.log(gesture)
                 const gestureY = gesture.dy;
-                console.log(`height: ${SCREEN_HEIGHT}`)
-                console.log('gesture: ' + gestureY)
-                if (gestureY < -210) {
+                if (gestureY < -180) {
                     const { scrollY } = this.state;
-                    console.log(`scroll: ${scrollY}`)
-                    // const screenY = SCREEN_HEIGHT - (gestureY * -1);
                     const screenY = gesture.moveY;
                     const y = scrollY + screenY;
-                    console.log(`dropY:${y}`)
                     this.setState({ dragging: false, taskDropped: true, dropY: y })
                 } else {
                     this.setState({ dragging: false })
@@ -55,7 +49,6 @@ class Root extends Component {
 
     handleScroll = (event) => {
         const { y } = event.nativeEvent.contentOffset;
-        console.log(`scrolling:${y}`)
         this.setState({ scrollY: y })
     }
 
