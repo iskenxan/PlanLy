@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, cloneElement } from 'react';
 import { View, Text, Image, Animated, PanResponder } from 'react-native';
 import { Icon } from 'react-native-elements'
 import { connect } from 'react-redux'
@@ -13,7 +13,8 @@ class TaskContainer extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            cards: {},
+            tasks: {},
+            elevatedTask: null,
         }
     }
 
@@ -44,46 +45,37 @@ class TaskContainer extends Component {
 
 
     renderCard = (dropY, position, style, panResponder, startTime, title, duration) => {
-        const containerStyle = {
-            position: 'absolute',
-            alignItems: 'center',
-            left: 5,
-            right: 5,
-        }
         return (
             <Animated.View
                 key={dropY}
-                style={{ ...position.getLayout(), ...containerStyle }}>
-                <View style={style}>
-                    <Image
-                        {...panResponder.panHandlers}
-                        source={DRAG_BTN}
-                        style={styles.cardDrag} />
-                    <View style={styles.cardTop}>
-                        <Text>{startTime}</Text>
-                        <Icon
-                            name='more-vert'
-                            color='#8493A8' />
-                    </View>
-                    <View style={styles.cardTitle}>
-                        <Text style={{ textAlign: 'center' }}>{title}</Text>
-                    </View>
-                    <Text style={styles.cardBottom}>{getDurationText(duration)}</Text>
+                style={{ ...position.getLayout(), ...style }}>
+                <Image
+                    {...panResponder.panHandlers}
+                    source={DRAG_BTN}
+                    style={styles.cardDrag} />
+                <View style={styles.cardTop}>
+                    <Text>{startTime}</Text>
+                    <Icon
+                        name='more-vert'
+                        color='#8493A8' />
                 </View>
+                <View style={styles.cardTitle}>
+                    <Text style={{ textAlign: 'center' }}>{title}</Text>
+                </View>
+                <Text style={styles.cardBottom}>{getDurationText(duration)}</Text>
             </Animated.View>
         );
     }
 
 
     addCard = (height, title, duration, dropY, scrollHeight) => {
-        let newStack = { ...this.state.cards };
+        let newStack = { ...this.state.tasks };
         const cardStyle = { ...styles.card };
         cardStyle.height = height;
         const deduction = height > 180 ? 150 : height;
-        const y = dropY - deduction;
+        let y = Math.floor(dropY - deduction);
         let startTime = this.calculateStartTime(y, scrollHeight);
 
-        cardStyle.top = y
         const position = new Animated.ValueXY();
         const panResponder = PanResponder.create({
             onStartShouldSetPanResponder: () => true,
@@ -92,26 +84,30 @@ class TaskContainer extends Component {
             },
             onPanResponderGrant: (event, gesture) => {
                 position.setOffset({ x: position.x._value, y: position.y._value });
+                const task = this.state.tasks[y];
                 position.setValue({ x: 0, y: 0 })
+                console.log('here')
+                this.setState({ elevatedTask: task })
             },
             onPanResponderRelease: (e, gesture) => {
                 position.flattenOffset();
-                const newY = y + gesture.dy;
-                startTime = this.calculateStartTime(newY, scrollHeight);
-                newStack = { ...this.state.cards };
-                delete newStack.y;
-                newStack[newY] = this.renderCard(newY, position, cardStyle,
-                    panResponder, startTime, title, duration)
-                this.setState({ cards: newStack })
+                newStack = { ...this.state.tasks };
+                delete newStack[y];
+                y = y + gesture.dy;
+                startTime = this.calculateStartTime(y, scrollHeight);
+                position.setValue({ x: position.x, y })
+                const newCard = this.renderCard(y, position, cardStyle,
+                    panResponder, startTime, title, duration);
+                newStack[y] = { card: newCard, title, duration, startTime };
+                this.setState({ tasks: newStack })
             }
         });
-
+        position.setValue({ x: 0, y })
         const card = this.renderCard(y, position,
             cardStyle, panResponder, startTime, title, duration);
 
-        newStack[y] = card;
-        console.log(newStack)
-        this.setState({ cards: newStack })
+        newStack[y] = { card, title, duration, startTime };
+        this.setState({ tasks: newStack })
     }
 
 
@@ -121,10 +117,30 @@ class TaskContainer extends Component {
     }
 
 
+    renderStack = () => {
+        const { elevatedTask, tasks } = this.state;
+        const cards = Object.values(tasks).map(task => {
+            if (elevatedTask && elevatedTask.startTime === task.startTime) {
+                const { card } = task;
+                const newStyle = { ...card.props.style };
+                newStyle.elevation = 10;
+                newStyle.left = 10;
+                newStyle.right = 10;
+                console.log(newStyle);
+                return cloneElement(card, { style: newStyle })
+            }
+
+            return task.card;
+        })
+
+        return cards;
+    }
+
+
     render() {
         return (
             <View onLayout={this.onLayout} style={styles.container}>
-                {Object.values(this.state.cards)}
+                {this.renderStack()}
             </View>
         )
     }
@@ -139,13 +155,12 @@ const styles = {
     },
     card: {
         position: 'absolute',
+        alignItems: 'center',
+        left: 5,
+        right: 5,
         padding: 10,
         backgroundColor: '#fff',
         borderRadius: 10,
-        alignItems: 'center',
-        left: 0,
-        right: 0,
-        flex: 1,
     },
     cardTop: {
         flexDirection: 'row',
