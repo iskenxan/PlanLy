@@ -82,7 +82,7 @@ class TaskContainer extends Component {
                 const moveY = Math.abs(gesture.dy);
                 position.flattenOffset();
 
-                if (moveY < 5) {
+                if (moveY === 0) {
                     return this.setState({ elevatedTask: null });
                 }
                 this.rerenderNewCardAndUpdateStack(gesture.dy);
