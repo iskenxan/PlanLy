@@ -1,5 +1,5 @@
 import React, { Component, cloneElement } from 'react';
-import { View, Text, Image, Animated, PanResponder } from 'react-native';
+import { View, Text, Image, Animated, PanResponder, TouchableWithoutFeedback } from 'react-native';
 import { Icon } from 'react-native-elements'
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
@@ -9,12 +9,16 @@ import { calculateCardHeight, getDurationText } from '../utils/Formatter'
 import { DRAG_BTN } from '../media'
 
 
+
 class TaskContainer extends Component {
     constructor(props) {
         super(props);
         this.state = {
             tasks: {},
             elevatedTask: null,
+            elevatedStartY: 0,
+            elevatedIndex: -1,
+            index: 0,
         }
     }
 
@@ -22,14 +26,14 @@ class TaskContainer extends Component {
     componentWillReceiveProps(props) {
         if (props.taskDropped) {
             const { duration, title } = this.props.drag;
-            const { scrollHeight } = this.props;
             const height = calculateCardHeight(duration)
-            this.addCard(height, title, duration, props.dropY, scrollHeight);
+            this.addCard(height, title, duration, props.dropY);
         }
     }
 
 
-    calculateStartTime = (y, scrollHeight) => {
+    calculateStartTime = (y) => {
+        const { scrollHeight } = this.props;
         const unit = 86400 / scrollHeight;
         const seconds = y * unit;
         let current = moment().startOf('day');
@@ -44,10 +48,84 @@ class TaskContainer extends Component {
     }
 
 
-    renderCard = (dropY, position, style, panResponder, startTime, title, duration) => {
+
+    rerenderNewCardAndUpdateStack = (gestureY) => {
+        const { elevatedTask, elevatedStartY, elevatedIndex } = this.state;
+        const currentY = elevatedStartY;
+        const newStack = { ...this.state.tasks };
+
+        const newY = currentY + gestureY;
+        const startTime = this.calculateStartTime(newY);
+        const newTask = { ...elevatedTask, startTime };
+        newStack[elevatedIndex] = newTask;
+        this.setState({ tasks: newStack, elevatedTask: null })
+    }
+
+
+    createPanResponder = (index) => {
+        const panResponder = PanResponder.create({
+            onStartShouldSetPanResponder: () => true,
+            onPanResponderMove: (event, gesture) => {
+                const { elevatedTask: { position } } = this.state;
+                position.setValue({ x: gesture.dx, y: gesture.dy });
+            },
+            onPanResponderGrant: (event, gesture) => {
+                const task = this.state.tasks[index];
+                const { position } = task;
+                const currentY = position.y._value;
+                position.setOffset({ x: position.x._value, y: currentY });
+                position.setValue({ x: 0, y: 0 })
+                this.setState({ elevatedTask: task, elevatedIndex: index, elevatedStartY: currentY })
+            },
+            onPanResponderRelease: (e, gesture) => {
+                const { position } = this.state.elevatedTask
+                const moveY = Math.abs(gesture.dy);
+                position.flattenOffset();
+
+                if (moveY < 5) {
+                    return this.setState({ elevatedTask: null });
+                }
+                this.rerenderNewCardAndUpdateStack(gesture.dy);
+            }
+        });
+
+        return panResponder;
+    }
+
+
+    createNewCardAndAddToStack = (stack, y, cardStyle, title, duration, startTime) => {
+        const { index } = this.state;
+        const position = new Animated.ValueXY()
+        position.setValue({ x: 0, y })
+        const panResponder = this.createPanResponder(index);
+        const task = { title, duration, startTime, position, panResponder, style: cardStyle };
+        stack[index] = task;
+        this.setState({ tasks: stack, elevatedTask: null, index: index + 1 })
+    }
+
+
+    addCard = (height, title, duration, dropY) => {
+        const newStack = { ...this.state.tasks };
+        const cardStyle = { ...styles.card };
+        cardStyle.height = height;
+        const deduction = height > 180 ? 150 : height;
+        let y = Math.floor(dropY - deduction);
+        let startTime = this.calculateStartTime(y);
+
+        this.createNewCardAndAddToStack(newStack, y, cardStyle, title, duration, startTime);
+    }
+
+
+    onLayout = (event) => {
+        let { width } = event.nativeEvent.layout;
+        this.props.onDropWidth(width)
+    }
+
+
+    renderCard = (index, { style, position, panResponder, startTime, title, duration }) => {
         return (
             <Animated.View
-                key={dropY}
+                key={index}
                 style={{ ...position.getLayout(), ...style }}>
                 <Image
                     {...panResponder.panHandlers}
@@ -68,69 +146,28 @@ class TaskContainer extends Component {
     }
 
 
-    addCard = (height, title, duration, dropY, scrollHeight) => {
-        let newStack = { ...this.state.tasks };
-        const cardStyle = { ...styles.card };
-        cardStyle.height = height;
-        const deduction = height > 180 ? 150 : height;
-        let y = Math.floor(dropY - deduction);
-        let startTime = this.calculateStartTime(y, scrollHeight);
-
-        const position = new Animated.ValueXY();
-        const panResponder = PanResponder.create({
-            onStartShouldSetPanResponder: () => true,
-            onPanResponderMove: (event, gesture) => {
-                position.setValue({ x: gesture.dx, y: gesture.dy });
-            },
-            onPanResponderGrant: (event, gesture) => {
-                position.setOffset({ x: position.x._value, y: position.y._value });
-                const task = this.state.tasks[y];
-                position.setValue({ x: 0, y: 0 })
-                console.log('here')
-                this.setState({ elevatedTask: task })
-            },
-            onPanResponderRelease: (e, gesture) => {
-                position.flattenOffset();
-                newStack = { ...this.state.tasks };
-                delete newStack[y];
-                y = y + gesture.dy;
-                startTime = this.calculateStartTime(y, scrollHeight);
-                position.setValue({ x: position.x, y })
-                const newCard = this.renderCard(y, position, cardStyle,
-                    panResponder, startTime, title, duration);
-                newStack[y] = { card: newCard, title, duration, startTime };
-                this.setState({ tasks: newStack })
-            }
-        });
-        position.setValue({ x: 0, y })
-        const card = this.renderCard(y, position,
-            cardStyle, panResponder, startTime, title, duration);
-
-        newStack[y] = { card, title, duration, startTime };
-        this.setState({ tasks: newStack })
-    }
-
-
-    onLayout = (event) => {
-        let { width } = event.nativeEvent.layout;
-        this.props.onDropWidth(width)
-    }
-
-
     renderStack = () => {
         const { elevatedTask, tasks } = this.state;
+        let counter = 0;
+        console.log(tasks)
         const cards = Object.values(tasks).map(task => {
+            const { style } = task;
+            const newStyle = { ...style };
             if (elevatedTask && elevatedTask.startTime === task.startTime) {
-                const { card } = task;
-                const newStyle = { ...card.props.style };
-                newStyle.elevation = 10;
+                newStyle.elevation = 5;
                 newStyle.left = 10;
                 newStyle.right = 10;
-                console.log(newStyle);
-                return cloneElement(card, { style: newStyle })
+            } else {
+                newStyle.elevation = 0;
+                newStyle.left = 5;
+                newStyle.right = 5;
             }
 
-            return task.card;
+            task.style = newStyle;
+
+            const card = this.renderCard(counter, task);
+            counter += 1;
+            return card;
         })
 
         return cards;

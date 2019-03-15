@@ -14,7 +14,7 @@ class TimeLine extends Component {
     getTimes() {
         const times = [];
         let current = moment().startOf('day');
-        for (let index = 0; index < SECONDS_DAY; index += THRESHOLD) {
+        for (let index = 0; index <= SECONDS_DAY; index += THRESHOLD) {
             const text = current.format('h:mm a');
             const item = { text, seconds: index };
             times.push(item);
