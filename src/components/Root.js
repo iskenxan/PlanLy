@@ -5,7 +5,6 @@ import TimeLine from './Timeline';
 import AddItemPanel from './AddItemPanel';
 import TaskContainer from './TaskContainer'
 
-const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 
 class Root extends Component {
@@ -18,10 +17,11 @@ class Root extends Component {
             dragging: false,
             taskDropped: false,
             dropY: -1,
-            scrollY: 0,
+            panelY: 0,
             scrollHeight: 0,
         }
 
+        this.scrollY = 0;
         this.panResponder = PanResponder.create({
             onStartShouldSetPanResponder: () => true,
             onPanResponderMove: (event, gesture) => {
@@ -32,11 +32,10 @@ class Root extends Component {
                 this.position.setValue({ x: gesture.dx, y: gesture.dy });
             },
             onPanResponderRelease: (e, gesture) => {
+                this.position.flattenOffset();
                 const gestureY = gesture.dy;
-                if (gestureY < -180) {
-                    const { scrollY } = this.state;
-                    const screenY = gesture.moveY;
-                    const y = scrollY + screenY;
+                if (gestureY < -150) {
+                    const y = this.scrollY + this.state.panelY + gestureY;
                     this.setState({ dragging: false, taskDropped: true, dropY: y })
                 } else {
                     this.setState({ dragging: false })
@@ -49,7 +48,12 @@ class Root extends Component {
 
     handleScroll = (event) => {
         const { y } = event.nativeEvent.contentOffset;
-        this.setState({ scrollY: y })
+        this.scrollY = y;
+    }
+
+
+    handleOnCardLayout = (y) => {
+        this.setState({ panelY: y })
     }
 
 
@@ -59,10 +63,10 @@ class Root extends Component {
 
 
     render() {
-        const { 
-            dragging, 
-            dropWidth, 
-            taskDropped, 
+        const {
+            dragging,
+            dropWidth,
+            taskDropped,
             dropY,
             scrollHeight
         } = this.state;
@@ -80,6 +84,7 @@ class Root extends Component {
                         taskDropped={taskDropped} />
                 </ScrollView>
                 <AddItemPanel
+                    onCardlayout={this.handleOnCardLayout}
                     dropWidth={dropWidth}
                     dragging={dragging}
                     layoutStyle={this.position.getLayout()}

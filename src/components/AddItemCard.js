@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import { Text, Input, Slider } from 'react-native-elements';
 import { View, Keyboard } from 'react-native';
-import { getDurationText, calculateCardHeight } from '../utils/Formatter'
+import { getDurationText } from '../utils/Formatter'
+
 
 
 class AddItemCard extends Component {
@@ -32,11 +33,7 @@ class AddItemCard extends Component {
         const { duration, title } = this.state;
         return (
             <View style={styles.card}>
-                <View style={{
-                    flexDirection: 'row',
-                    justifyContent: 'flex-start',
-                    alignItems: 'center',
-                }}>
+                <View style={styles.centeredContent}>
                     <Text>Title:</Text>
                     <Input
                         value={title}
@@ -46,23 +43,19 @@ class AddItemCard extends Component {
                         placeholder='Your task title'
                     />
                 </View>
-                <View style={{
-                    flexDirection: 'row',
-                    justifyContent: 'flex-start',
-                    alignItems: 'center',
-                }}>
+                <Text style={{ marginTop: 15 }}>{getDurationText(duration)}</Text>
+                <View style={styles.centeredContent}>
                     <Text style={{ marginRight: 10 }}>Duration:</Text>
                     <Slider
                         thumbTintColor='#F5A623'
                         step={5}
                         maximumValue={480}
-                        minimumValue={0}
+                        minimumValue={15}
                         value={duration}
                         onValueChange={this.onDurationChanged}
                         style={styles.slider}
                     />
                 </View>
-                <Text>{getDurationText(duration)}</Text>
             </View>
         );
     }
@@ -75,8 +68,6 @@ class AddItemCard extends Component {
         cardStyle.width = dropWidth;
         cardStyle.justifyContent = 'center';
 
-        const height = calculateCardHeight(duration);
-        cardStyle.height = height;
         return (
             <View style={cardStyle}>
                 <Text>{title}</Text>
@@ -112,11 +103,19 @@ const styles = {
     },
     input: {
         fontSize: 14,
+        maxHeight: 15,
+        padding: 1,
     },
     slider: {
         flex: 1,
         width: null,
         marginRight: 8,
+        padding: 1,
+    },
+    centeredContent: {
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
     }
 }
 

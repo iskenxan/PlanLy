@@ -11,10 +11,18 @@ const THRESHOLD = 900;
 
 class TimeLine extends Component {
 
+    constructor(props) {
+        super(props);
+        const times = this.getTimes()
+        this.state = {
+            times,
+        }
+    }
+
     getTimes() {
         const times = [];
         let current = moment().startOf('day');
-        for (let index = 0; index < SECONDS_DAY; index += THRESHOLD) {
+        for (let index = 0; index <= SECONDS_DAY; index += THRESHOLD) {
             const text = current.format('h:mm a');
             const item = { text, seconds: index };
             times.push(item);
@@ -27,29 +35,34 @@ class TimeLine extends Component {
 
 
     renderTimeDisplays() {
-        return this.getTimes().map(item => {
+        let counter = 0;
+        const { times } = this.state;
+        return times.map(item => {
+            const style = { ...styles.itemContainer };
+            if (counter < times.length - 1) {
+                style.marginBottom = 55;
+            }
+            counter += 1;
             if (item.seconds % SECONDS_HOUR === 0) {
                 return (
-                    <View style={styles.itemContainer} key={item.seconds}>
+                    <View style={style} key={item.seconds}>
                         <Text style={styles.text} >{item.text}</Text>
                         <View style={styles.circle}></View>
                     </View>
                 );
             } else {
                 return (
-                    <View style={styles.itemContainer} key={item.seconds}>
+                    <View style={style} key={item.seconds}>
                         <Text style={styles.text} >{item.text}</Text>
                     </View>
                 );
             }
-            
         });
     }
 
 
     render() {
         const { container } = styles;
-        this.getTimes();
         return (
             <View style={{ flexDirection: 'row', width: 50 }}>
                 <Divider
@@ -74,14 +87,13 @@ const styles = {
         alignSelf: 'flex-start'
     },
     itemContainer: {
-        marginBottom: 35,
         flexDirection: 'row',
         justifyContent: 'flex-start',
         width: 50,
         alignItems: 'center'
     },
     text: {
-        fontSize:9,
+        fontSize: 9,
         width: 40,
         maxWidth: 40,
         height: 10,
@@ -98,6 +110,7 @@ const styles = {
     circle: {
         height: 5,
         width: 5,
+        marginTop:3,
         borderRadius: 3,
         borderWidth: 3,
         borderColor: '#E3910B',

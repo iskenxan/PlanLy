@@ -20,11 +20,17 @@ class AddItemPanel extends Component {
         this.props.onTaskDataReceived(title, duration)
     }
 
+    handleOnLayout = (event) => {
+        const { y } = event.nativeEvent.layout;
+        this.props.onCardlayout(y + 55);
+    }
+
 
     render() {
 
         return (
-            <View style={styles.container}>
+            <View style={styles.container}
+                onLayout={this.handleOnLayout}>
                 <Image
                     style={styles.backgroundImage}
                     source={ACCENT_GRADIENT}

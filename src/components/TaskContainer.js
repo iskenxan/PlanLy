@@ -1,32 +1,31 @@
-import React, { Component, cloneElement } from 'react';
-import { View, Text, Image, Animated, PanResponder, TouchableWithoutFeedback } from 'react-native';
+import React, { Component } from 'react';
+import { View, Text, Image, Animated, PanResponder } from 'react-native';
 import { Icon } from 'react-native-elements'
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
 import moment from 'moment';
+import { addTask } from '../actions/TasksAction';
 import { onDropWidth } from '../actions/DragAnimationActions'
-import { calculateCardHeight, getDurationText } from '../utils/Formatter'
+import { calculateCardHeight, getDurationText, SECONDS_DAY } from '../utils/Formatter'
 import { DRAG_BTN } from '../media'
-
 
 
 class TaskContainer extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            tasks: {},
             elevatedTask: null,
             elevatedStartY: 0,
             elevatedIndex: -1,
-            index: 0,
         }
     }
 
 
     componentWillReceiveProps(props) {
-        if (props.taskDropped) {
+        if (props.taskDropped && !this.props.taskDropped) {
+            const { scrollHeight } = props;
             const { duration, title } = this.props.drag;
-            const height = calculateCardHeight(duration)
+            const height = calculateCardHeight(duration, scrollHeight)
             this.addCard(height, title, duration, props.dropY);
         }
     }
@@ -34,19 +33,19 @@ class TaskContainer extends Component {
 
     calculateStartTime = (y) => {
         const { scrollHeight } = this.props;
-        const unit = 86400 / scrollHeight;
-        const seconds = y * unit;
+        let unit = Math.fround(SECONDS_DAY / scrollHeight);
+        let seconds = y * unit;
+
         let current = moment().startOf('day');
-        current.add(seconds, 's')
+        current.add(seconds, 'S')
         let minutes = current.get('minutes');
-        minutes = Math.ceil((minutes) / 5) * 5;
+        minutes = Math.floor(minutes / 5) * 5;
         current.set('minutes', minutes);
 
         const text = current.format('h:mm a');
 
         return text;
     }
-
 
 
     rerenderNewCardAndUpdateStack = (gestureY) => {
@@ -70,7 +69,7 @@ class TaskContainer extends Component {
                 position.setValue({ x: gesture.dx, y: gesture.dy });
             },
             onPanResponderGrant: (event, gesture) => {
-                const task = this.state.tasks[index];
+                const task = this.props.tasks[index];
                 const { position } = task;
                 const currentY = position.y._value;
                 position.setOffset({ x: position.x._value, y: currentY });
@@ -82,7 +81,7 @@ class TaskContainer extends Component {
                 const moveY = Math.abs(gesture.dy);
                 position.flattenOffset();
 
-                if (moveY === 0) {
+                if (moveY <= 5) {
                     return this.setState({ elevatedTask: null });
                 }
                 this.rerenderNewCardAndUpdateStack(gesture.dy);
@@ -93,26 +92,23 @@ class TaskContainer extends Component {
     }
 
 
-    createNewCardAndAddToStack = (stack, y, cardStyle, title, duration, startTime) => {
-        const { index } = this.state;
+    createNewCardAndAddToStack = (y, cardStyle, title, duration, startTime) => {
+        const { currentIndex: index } = this.props;
         const position = new Animated.ValueXY()
         position.setValue({ x: 0, y })
         const panResponder = this.createPanResponder(index);
-        const task = { title, duration, startTime, position, panResponder, style: cardStyle };
-        stack[index] = task;
-        this.setState({ tasks: stack, elevatedTask: null, index: index + 1 })
+        const task = { index, title, duration, startTime, position, panResponder, style: cardStyle };
+        this.props.addTask(task)
+        this.setState({ elevatedTask: null })
     }
 
 
     addCard = (height, title, duration, dropY) => {
-        const newStack = { ...this.state.tasks };
         const cardStyle = { ...styles.card };
         cardStyle.height = height;
-        const deduction = height > 180 ? 150 : height;
-        let y = Math.floor(dropY - deduction);
-        let startTime = this.calculateStartTime(y);
+        let startTime = this.calculateStartTime(dropY);
 
-        this.createNewCardAndAddToStack(newStack, y, cardStyle, title, duration, startTime);
+        this.createNewCardAndAddToStack(dropY, cardStyle, title, duration, startTime);
     }
 
 
@@ -122,7 +118,7 @@ class TaskContainer extends Component {
     }
 
 
-    renderCard = (index, { style, position, panResponder, startTime, title, duration }) => {
+    renderCard = ({ index, style, position, panResponder, startTime, title, duration }) => {
         return (
             <Animated.View
                 key={index}
@@ -147,9 +143,8 @@ class TaskContainer extends Component {
 
 
     renderStack = () => {
-        const { elevatedTask, tasks } = this.state;
-        let counter = 0;
-        console.log(tasks)
+        const { elevatedTask } = this.state;
+        const { tasks } = this.props;
         const cards = Object.values(tasks).map(task => {
             const { style } = task;
             const newStyle = { ...style };
@@ -165,8 +160,7 @@ class TaskContainer extends Component {
 
             task.style = newStyle;
 
-            const card = this.renderCard(counter, task);
-            counter += 1;
+            const card = this.renderCard(task);
             return card;
         })
 
@@ -227,7 +221,9 @@ const styles = {
 
 function mapStateToProps(state) {
     return {
-        drag: state.drag
+        drag: state.drag,
+        tasks: state.taskData.tasks,
+        currentIndex: state.taskData.currentIndex,
     }
 }
 
@@ -235,6 +231,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return bindActionCreators({
         onDropWidth,
+        addTask,
     }, dispatch)
 }
 

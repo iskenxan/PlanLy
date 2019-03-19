@@ -1,3 +1,7 @@
+export const SECONDS_DAY = 87000;
+export const MINUTES_DAY = 1440;
+
+
 export const getDurationText = (duration) => {
     duration = Math.floor(duration);
 
@@ -14,11 +18,11 @@ export const getDurationText = (duration) => {
 }
 
 
-export const calculateCardHeight = (duration) => {
-    let height = 45;
+export const calculateCardHeight = (duration, scrollHeight) => {
+    const unit = scrollHeight / MINUTES_DAY;
+    let height = 65;
     if (duration > 20) {
-        const extra = Math.ceil((duration - 15) / 15)
-        height = height + extra * 45;
+        height = unit * duration;
     }
 
     return height;
