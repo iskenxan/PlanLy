@@ -1,13 +1,12 @@
 import React, { Component } from 'react';
-import { View, Text, Image, Animated, PanResponder } from 'react-native';
-import { Icon } from 'react-native-elements'
+import { View, Animated, PanResponder } from 'react-native';
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
 import moment from 'moment';
 import { addTask } from '../actions/TasksAction';
 import { onDropWidth } from '../actions/DragAnimationActions'
-import { calculateCardHeight, getDurationText, SECONDS_DAY } from '../utils/Formatter'
-import { DRAG_BTN } from '../media'
+import { calculateCardHeight, SECONDS_DAY } from '../utils/Formatter'
+import Task from './Task';
 
 
 class TaskContainer extends Component {
@@ -118,49 +117,30 @@ class TaskContainer extends Component {
     }
 
 
-    renderCard = ({ index, style, position, panResponder, startTime, title, duration }) => {
-        return (
-            <Animated.View
-                key={index}
-                style={{ ...position.getLayout(), ...style }}>
-                <Image
-                    {...panResponder.panHandlers}
-                    source={DRAG_BTN}
-                    style={styles.cardDrag} />
-                <View style={styles.cardTop}>
-                    <Text>{startTime}</Text>
-                    <Icon
-                        name='more-vert'
-                        color='#8493A8' />
-                </View>
-                <View style={styles.cardTitle}>
-                    <Text style={{ textAlign: 'center' }}>{title}</Text>
-                </View>
-                <Text style={styles.cardBottom}>{getDurationText(duration)}</Text>
-            </Animated.View>
-        );
+    getElevatedCardStyle = (style, task) => {
+        const { elevatedTask } = this.state;
+        const newStyle = { ...style };
+        if (elevatedTask && elevatedTask.startTime === task.startTime) {
+            newStyle.elevation = 5;
+            newStyle.left = 10;
+            newStyle.right = 10;
+        } else {
+            newStyle.elevation = 0;
+            newStyle.left = 5;
+            newStyle.right = 5;
+        }
+
+        return newStyle;
     }
 
 
     renderStack = () => {
-        const { elevatedTask } = this.state;
         const { tasks } = this.props;
         const cards = Object.values(tasks).map(task => {
             const { style } = task;
-            const newStyle = { ...style };
-            if (elevatedTask && elevatedTask.startTime === task.startTime) {
-                newStyle.elevation = 5;
-                newStyle.left = 10;
-                newStyle.right = 10;
-            } else {
-                newStyle.elevation = 0;
-                newStyle.left = 5;
-                newStyle.right = 5;
-            }
-
+            const newStyle = this.getElevatedCardStyle(style, task);
             task.style = newStyle;
-
-            const card = this.renderCard(task);
+            const card = (<Task key={task.index} data={task} />)
             return card;
         })
 
@@ -192,29 +172,6 @@ const styles = {
         padding: 10,
         backgroundColor: '#fff',
         borderRadius: 10,
-    },
-    cardTop: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        position: 'relative',
-        height: 20,
-        alignSelf: 'stretch'
-    },
-    cardTitle: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    cardBottom: {
-        alignSelf: 'stretch',
-        textAlign: 'right'
-    },
-    cardDrag: {
-        position: 'absolute',
-        alignSelf: 'center',
-        top: 0,
-        width: 75,
-        height: 17,
     }
 }
 
