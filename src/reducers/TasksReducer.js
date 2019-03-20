@@ -1,4 +1,4 @@
-import { ADD_TASK, REMOVE_TASK } from '../actions/TasksAction'
+import { ADD_TASK, REMOVE_TASK, UPDATE_TASK } from '../actions/TasksAction'
 
 const initialState = {
     tasks: {},
@@ -21,6 +21,14 @@ const TaskReducer = (state = initialState, action) => {
             delete newTasks[index];
 
             return { tasks: newTasks, currentIndex: state.currentIndex - 1 };
+        }
+        case UPDATE_TASK: {
+            const task = action.payload;
+            const { index } = task;
+            const newTasks = { ...state.tasks };
+            newTasks[index] = task;
+
+            return { tasks: newTasks, currentIndex: state.currentIndex };
         }
     }
 

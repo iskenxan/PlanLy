@@ -3,10 +3,11 @@ import { View, Animated, PanResponder } from 'react-native';
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
 import moment from 'moment';
-import { addTask } from '../actions/TasksAction';
-import { onDropWidth } from '../actions/DragAnimationActions'
+import { addTask, updateTask } from '../actions/TasksAction';
+import { onDropWidth, setElevatedIndex } from '../actions/DragAnimationActions'
 import { calculateCardHeight, SECONDS_DAY } from '../utils/Formatter'
 import Task from './Task';
+
 
 
 class TaskContainer extends Component {
@@ -15,7 +16,6 @@ class TaskContainer extends Component {
         this.state = {
             elevatedTask: null,
             elevatedStartY: 0,
-            elevatedIndex: -1,
         }
     }
 
@@ -48,42 +48,60 @@ class TaskContainer extends Component {
 
 
     rerenderNewCardAndUpdateStack = (gestureY) => {
-        const { elevatedTask, elevatedStartY, elevatedIndex } = this.state;
+        const { elevatedStartY } = this.state;
+        const { elevatedIndex } = this.props.drag;
+        const elevatedTask = this.props.tasks[elevatedIndex];
         const currentY = elevatedStartY;
-        const newStack = { ...this.state.tasks };
 
         const newY = currentY + gestureY;
+
         const startTime = this.calculateStartTime(newY);
+
         const newTask = { ...elevatedTask, startTime };
-        newStack[elevatedIndex] = newTask;
-        this.setState({ tasks: newStack, elevatedTask: null })
+        this.props.updateTask(newTask);
+        this.props.setElevatedIndex(-1);
+    }
+
+
+    handleResponderRelease(gesture) {
+        const { elevatedIndex } = this.props.drag;
+        const { position } = this.props.tasks[elevatedIndex];
+        const moveY = Math.abs(gesture.dy);
+        position.flattenOffset();
+ 
+        if (moveY <= 5) {
+            return this.props.setElevatedIndex(-1);
+        }
+        this.rerenderNewCardAndUpdateStack(gesture.dy);
     }
 
 
     createPanResponder = (index) => {
         const panResponder = PanResponder.create({
-            onStartShouldSetPanResponder: () => true,
+            onStartShouldSetPanResponder: (evt, gestureState) => true,
+            onStartShouldSetPanResponderCapture: (evt, gestureState) => true,
+            onMoveShouldSetPanResponder: (evt, gestureState) => true,
+            onMoveShouldSetPanResponderCapture: (evt, gestureState) => true,
             onPanResponderMove: (event, gesture) => {
-                const { elevatedTask: { position } } = this.state;
+                const { elevatedIndex } = this.props.drag;
+                const { position } = this.props.tasks[elevatedIndex];
                 position.setValue({ x: gesture.dx, y: gesture.dy });
             },
             onPanResponderGrant: (event, gesture) => {
                 const task = this.props.tasks[index];
                 const { position } = task;
                 const currentY = position.y._value;
+
                 position.setOffset({ x: position.x._value, y: currentY });
                 position.setValue({ x: 0, y: 0 })
-                this.setState({ elevatedTask: task, elevatedIndex: index, elevatedStartY: currentY })
+                this.props.setElevatedIndex(task.index);
+                this.setState({ elevatedStartY: currentY })
             },
             onPanResponderRelease: (e, gesture) => {
-                const { position } = this.state.elevatedTask
-                const moveY = Math.abs(gesture.dy);
-                position.flattenOffset();
-
-                if (moveY <= 5) {
-                    return this.setState({ elevatedTask: null });
-                }
-                this.rerenderNewCardAndUpdateStack(gesture.dy);
+                this.handleResponderRelease(gesture);
+            },
+            onPanResponderTerminate: (e, gesture) => {
+                this.handleResponderRelease(gesture);
             }
         });
 
@@ -98,7 +116,6 @@ class TaskContainer extends Component {
         const panResponder = this.createPanResponder(index);
         const task = { index, title, duration, startTime, position, panResponder, style: cardStyle };
         this.props.addTask(task)
-        this.setState({ elevatedTask: null })
     }
 
 
@@ -117,29 +134,9 @@ class TaskContainer extends Component {
     }
 
 
-    getElevatedCardStyle = (style, task) => {
-        const { elevatedTask } = this.state;
-        const newStyle = { ...style };
-        if (elevatedTask && elevatedTask.startTime === task.startTime) {
-            newStyle.elevation = 5;
-            newStyle.left = 10;
-            newStyle.right = 10;
-        } else {
-            newStyle.elevation = 0;
-            newStyle.left = 5;
-            newStyle.right = 5;
-        }
-
-        return newStyle;
-    }
-
-
     renderStack = () => {
         const { tasks } = this.props;
         const cards = Object.values(tasks).map(task => {
-            const { style } = task;
-            const newStyle = this.getElevatedCardStyle(style, task);
-            task.style = newStyle;
             const card = (<Task key={task.index} data={task} />)
             return card;
         })
@@ -189,6 +186,8 @@ function mapDispatchToProps(dispatch) {
     return bindActionCreators({
         onDropWidth,
         addTask,
+        updateTask,
+        setElevatedIndex
     }, dispatch)
 }
 
