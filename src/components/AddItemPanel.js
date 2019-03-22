@@ -1,18 +1,25 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
-import { View, Image, Animated } from 'react-native';
+import { View, Image, Animated, Dimensions } from 'react-native';
 import { ACCENT_GRADIENT } from '../media'
-import { Text } from 'react-native-elements';
+import { Text, Icon } from 'react-native-elements';
 import AddItemCard from './AddItemCard';
-import { onTaskDataReceived } from '../actions/DragAnimationActions'
+import { onTaskDataReceived } from '../actions/DragAnimationActions';
+import Fab from './Fab';
+import { DARK_BLUE } from '../static'
 
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
 
 
 class AddItemPanel extends Component {
 
     constructor(props) {
         super(props);
+        this.widthValue = new Animated.Value(0);
+        this.heightValue = new Animated.Value(0);
+        this.fabWidth = new Animated.Value(SCREEN_WIDTH);
     }
 
 
@@ -20,17 +27,42 @@ class AddItemPanel extends Component {
         this.props.onTaskDataReceived(title, duration)
     }
 
-    handleOnLayout = (event) => {
-        const { y } = event.nativeEvent.layout;
-        this.props.onCardlayout(y + 55);
+
+    togglePanel = (isOpen) => {
+        const width = isOpen ? SCREEN_WIDTH : 0;
+        const height = isOpen ? 230 : 0;
+        const fabOpacity = isOpen ? 0 : SCREEN_WIDTH;
+
+        Animated.parallel([
+            Animated.timing(
+                this.widthValue, {
+                    toValue: width,
+                    duration: 200,
+                }
+            ),
+            Animated.timing(
+                this.heightValue, {
+                    toValue: height,
+                    duration: 200,
+                }
+            ),
+            Animated.timing(
+                this.fabWidth, {
+                    toValue: fabOpacity,
+                    duration: 200,
+                }
+            )
+        ]).start();
     }
 
 
-    render() {
+    renderPanel = () => {
+        const containerStyle = styles.container;
+        containerStyle.width = this.widthValue;
+        containerStyle.height = this.heightValue;
 
         return (
-            <View style={styles.container}
-                onLayout={this.handleOnLayout}>
+            <Animated.View style={containerStyle}>
                 <Image
                     style={styles.backgroundImage}
                     source={ACCENT_GRADIENT}
@@ -48,6 +80,45 @@ class AddItemPanel extends Component {
                             onDragStarted={this.onDragStarted} />
                     </Animated.View>
                 </View>
+                <View
+                    style={{
+                        position: 'absolute',
+                        top: 10,
+                        right: 5
+                    }}>
+                    <Icon
+                        onPress={() => this.togglePanel(false)}
+                        reverse
+                        reverseColor={DARK_BLUE}
+                        name='close'
+                        size={10}
+                        type='material'
+                        color='#fff' />
+                </View>
+
+            </Animated.View>
+        )
+    }
+
+
+    onFabPressed = () => {
+        console.log('pressed');
+        this.togglePanel(true);
+    }
+
+
+    render() {
+
+        return (
+            <View>
+                {this.renderPanel()}
+                <Animated.View
+                    style={{
+                        width: this.fabWidth
+                    }}>
+                    <Fab
+                        onPressed={this.onFabPressed} />
+                </Animated.View>
             </View>
         )
     }
@@ -56,14 +127,15 @@ class AddItemPanel extends Component {
 
 const styles = {
     container: {
-        width: '100%',
-        height: 210,
+        width: 0,
+        height: 0,
         alignItems: 'center',
     },
     innerContainer: {
         flex: 1,
         width: '100%',
-        paddingTop: 25,
+        marginTop: 20,
+        paddingTop: 30,
         paddingBottom: 10,
         paddingLeft: 10,
         paddingRight: 10,
@@ -77,7 +149,7 @@ const styles = {
     title: {
         color: 'white',
         fontWeight: '800',
-        fontSize: 16,
+        fontSize: 14,
         alignSelf: 'center'
     }
 }

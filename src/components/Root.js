@@ -3,8 +3,9 @@ import { connect } from 'react-redux';
 import { View, ScrollView, PanResponder, Animated, Dimensions } from 'react-native';
 import TimeLine from './Timeline';
 import AddItemPanel from './AddItemPanel';
-import TaskContainer from './TaskContainer'
+import TaskContainer from './TaskContainer';
 
+const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 
 class Root extends Component {
@@ -17,8 +18,8 @@ class Root extends Component {
             dragging: false,
             taskDropped: false,
             dropY: -1,
-            panelY: 0,
             scrollHeight: 0,
+            panelVisible: false,
         }
 
         this.scrollY = 0;
@@ -35,7 +36,8 @@ class Root extends Component {
                 this.position.flattenOffset();
                 const gestureY = gesture.dy;
                 if (gestureY < -150) {
-                    const y = this.scrollY + this.state.panelY + gestureY;
+                    const panelY = SCREEN_HEIGHT - 210 + 30;
+                    const y = this.scrollY + panelY + gestureY;
                     this.setState({ dragging: false, taskDropped: true, dropY: y })
                 } else {
                     this.setState({ dragging: false })
@@ -52,11 +54,6 @@ class Root extends Component {
     }
 
 
-    handleOnCardLayout = (y) => {
-        this.setState({ panelY: y })
-    }
-
-
     handleScrollContentSizeChange = (width, height) => {
         this.setState({ scrollHeight: height })
     }
@@ -68,7 +65,8 @@ class Root extends Component {
             dropWidth,
             taskDropped,
             dropY,
-            scrollHeight
+            scrollHeight,
+            panelVisible
         } = this.state;
 
         return (
@@ -84,7 +82,7 @@ class Root extends Component {
                         taskDropped={taskDropped} />
                 </ScrollView>
                 <AddItemPanel
-                    onCardlayout={this.handleOnCardLayout}
+                    visible={panelVisible}
                     dropWidth={dropWidth}
                     dragging={dragging}
                     layoutStyle={this.position.getLayout()}

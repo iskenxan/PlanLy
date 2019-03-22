@@ -137,8 +137,9 @@ const styles = {
         position: 'absolute',
         alignSelf: 'center',
         top: 0,
-        width: 75,
-        height: 17,
+        padding:10,
+        width: 100,
+        height: 22,
     }
 }
 

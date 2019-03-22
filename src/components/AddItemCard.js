@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Text, Input, Slider } from 'react-native-elements';
 import { View, Keyboard } from 'react-native';
 import { getDurationText } from '../utils/Formatter'
+import { ACCENT_ORANGE } from '../static'
 
 
 
@@ -47,7 +48,7 @@ class AddItemCard extends Component {
                 <View style={styles.centeredContent}>
                     <Text style={{ marginRight: 10 }}>Duration:</Text>
                     <Slider
-                        thumbTintColor='#F5A623'
+                        thumbTintColor={ACCENT_ORANGE}
                         step={5}
                         maximumValue={480}
                         minimumValue={15}
