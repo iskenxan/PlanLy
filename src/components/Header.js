@@ -25,6 +25,7 @@ class Header extends Component {
       cancelButtonIndex: 7,
     },
     (index) => {
+      if (index === 7) return;
       const { setCurrentDay: setCurrentDayAction } = this.props;
       const newDay = SHEET[index].text;
       setCurrentDayAction(newDay);
@@ -42,15 +43,13 @@ class Header extends Component {
         flex: 1,
         borderRadius: 10,
         margin: 10,
-      }}
-      >
+      }}>
         <View
           style={{
             justifyContent: 'center',
             flex: 1,
             alignItems: 'center',
-          }}
-        >
+          }}>
           <TouchableOpacity
             style={{
               width: 120,
@@ -58,14 +57,12 @@ class Header extends Component {
               alignItems: 'center',
               justifyContent: 'center',
             }}
-            onPress={this.onPressed}
-          >
+            onPress={this.onPressed}>
             <Text
               style={{
                 color: DARK_BLUE,
                 fontSize: 20,
-              }}
-            >
+              }}>
               {currentDay}
             </Text>
           </TouchableOpacity>

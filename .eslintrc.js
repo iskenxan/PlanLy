@@ -7,5 +7,6 @@ module.exports = {
         "react/prop-types": "off",
         "no-use-before-define": "off",
         "react/jsx-filename-extension": "off",
+        "react/jsx-closing-bracket-location": "off"
     }
 };
