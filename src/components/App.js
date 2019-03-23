@@ -1,29 +1,29 @@
+/* eslint-disable no-underscore-dangle */
 import React, { Component } from 'react';
 import { Provider } from 'react-redux';
 import { createStore } from 'redux';
 import { MenuProvider } from 'react-native-popup-menu';
+import { Root } from 'native-base';
 import reducers from '../reducers';
-import Root from './Root'
+import AppRoot from './Root';
 
 
 class App extends Component {
-
-  getStore = () => {
-    return createStore(reducers, window.__REDUX_DEVTOOLS_EXTENSION__
-      && window.__REDUX_DEVTOOLS_EXTENSION__())
-  }
+  getStore = () => createStore(reducers, global.window.__REDUX_DEVTOOLS_EXTENSION__
+      && global.window.__REDUX_DEVTOOLS_EXTENSION__())
 
 
   render() {
     return (
       <Provider store={this.getStore()}>
-        <MenuProvider>
-          <Root />
-        </MenuProvider>
+        <Root>
+          <MenuProvider>
+            <AppRoot />
+          </MenuProvider>
+        </Root>
       </Provider>
-    )
+    );
   }
-
 }
 
 export default App;
