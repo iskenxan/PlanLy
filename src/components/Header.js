@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { View, TouchableOpacity, Text } from 'react-native';
+import { Icon } from 'react-native-elements';
 import { ActionSheet } from 'native-base';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -34,6 +35,7 @@ class Header extends Component {
 
 
   render() {
+    const { arrowDownIcon, dropDownAction } = styles;
     const { currentDay } = this.props;
     return (
       <View style={{
@@ -51,26 +53,42 @@ class Header extends Component {
             alignItems: 'center',
           }}>
           <TouchableOpacity
-            style={{
-              width: 120,
-              height: 40,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+            style={dropDownAction}
             onPress={this.onPressed}>
             <Text
               style={{
                 color: DARK_BLUE,
-                fontSize: 20,
+                fontSize: 22,
               }}>
               {currentDay}
             </Text>
+            <Icon
+              type="material"
+              name="expand-more"
+              color={DARK_BLUE}
+              style={arrowDownIcon} />
           </TouchableOpacity>
         </View>
       </View>
     );
   }
 }
+
+
+const styles = {
+  dropDownAction: {
+    width: 120,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  arrowDownIcon: {
+    width: 10,
+    height: 10,
+  },
+};
+
 
 const mapStateToProps = state => ({
   currentDay: state.taskData.currentDay,

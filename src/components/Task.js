@@ -14,6 +14,7 @@ import { bindActionCreators } from 'redux';
 import { DRAG_BTN } from '../media';
 import { getDurationText } from '../utils/Formatter';
 import { removeTask } from '../actions/TasksAction';
+import EditTaskOverlay from './EditTaskOverlay';
 
 
 class Task extends Component {
@@ -21,6 +22,7 @@ class Task extends Component {
     super(props);
     this.state = {
       isElevated: false,
+      overlayVisible: false,
     };
   }
 
@@ -43,6 +45,11 @@ class Task extends Component {
   }
 
 
+  onEdit = () => {
+    this.setState({ overlayVisible: true });
+  }
+
+
   PopupMenu = ({ children }) => (
     <Menu>
       <MenuTrigger>
@@ -51,6 +58,9 @@ class Task extends Component {
       <MenuOptions>
         <MenuOption onSelect={this.onDelete}>
           <Text style={{ padding: 10 }}>Delete</Text>
+        </MenuOption>
+        <MenuOption onSelect={this.onEdit}>
+          <Text style={{ padding: 10 }}>onEdit</Text>
         </MenuOption>
       </MenuOptions>
     </Menu>
@@ -75,6 +85,7 @@ class Task extends Component {
 
 
   render() {
+    const { overlayVisible } = this.state;
     const {
       data: {
         index,
@@ -92,8 +103,7 @@ class Task extends Component {
     return (
       <Animated.View
         key={index}
-        style={{ ...position.getLayout(), ...newStyle }}
-      >
+        style={{ ...position.getLayout(), ...newStyle }}>
         <Image
           {...panResponder.panHandlers}
           source={DRAG_BTN}
@@ -112,6 +122,8 @@ class Task extends Component {
           <Text style={{ textAlign: 'center' }}>{title}</Text>
         </View>
         <Text style={styles.cardBottom}>{getDurationText(duration)}</Text>
+        <EditTaskOverlay
+          isVisible={overlayVisible} />
       </Animated.View>
     );
   }
