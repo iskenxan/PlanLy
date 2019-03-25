@@ -12,9 +12,9 @@ import { Icon } from 'react-native-elements';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { DRAG_BTN } from '../media';
-import { getDurationText } from '../utils/Formatter';
-import { removeTask } from '../actions/TasksAction';
-import EditTaskOverlay from './EditTaskOverlay';
+import { getDurationText, calculateCardHeight } from '../utils/Formatter';
+import { removeTask, updateTask } from '../actions/TasksAction';
+import EditOverlay from './EditTaskOverlay';
 
 
 class Task extends Component {
@@ -60,7 +60,7 @@ class Task extends Component {
           <Text style={{ padding: 10 }}>Delete</Text>
         </MenuOption>
         <MenuOption onSelect={this.onEdit}>
-          <Text style={{ padding: 10 }}>onEdit</Text>
+          <Text style={{ padding: 10 }}>Edit</Text>
         </MenuOption>
       </MenuOptions>
     </Menu>
@@ -81,6 +81,23 @@ class Task extends Component {
     }
 
     return newStyle;
+  }
+
+
+  onOverlayBackdropPress = () => {
+    this.setState({ overlayVisible: false });
+  }
+
+
+  onEditSavePress = (title, duration) => {
+    const { data, updateTask: updateTaskAction, scrollHeight } = this.props;
+    const newData = { ...data };
+    newData.title = title;
+    newData.duration = duration;
+    const newHeight = calculateCardHeight(duration, scrollHeight);
+    newData.style.height = newHeight;
+    updateTaskAction(newData);
+    this.setState({ overlayVisible: false });
   }
 
 
@@ -107,22 +124,24 @@ class Task extends Component {
         <Image
           {...panResponder.panHandlers}
           source={DRAG_BTN}
-          style={styles.cardDrag}
-        />
+          style={styles.cardDrag} />
         <View style={styles.cardTop}>
           <Text>{startTime}</Text>
           <this.PopupMenu>
             <Icon
               name="more-vert"
-              color="#8493A8"
-            />
+              color="#8493A8" />
           </this.PopupMenu>
         </View>
         <View style={styles.cardTitle}>
           <Text style={{ textAlign: 'center' }}>{title}</Text>
         </View>
         <Text style={styles.cardBottom}>{getDurationText(duration)}</Text>
-        <EditTaskOverlay
+        <EditOverlay
+          title={title}
+          duration={duration}
+          onSavePress={this.onEditSavePress}
+          onBackdropPress={this.onOverlayBackdropPress}
           isVisible={overlayVisible} />
       </Animated.View>
     );
@@ -168,6 +187,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
   return bindActionCreators({
     removeTask,
+    updateTask,
   }, dispatch);
 }
 

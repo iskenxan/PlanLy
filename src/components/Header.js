@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { setCurrentDay } from '../actions/TasksAction';
 import { DARK_BLUE } from '../colors';
+import SettingsOverlay from './SettingsOverlay';
 
 
 const SHEET = [
@@ -19,6 +20,14 @@ const SHEET = [
 ];
 
 class Header extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      settingsOverlayVisible: false,
+    };
+  }
+
   onPressed = () => {
     ActionSheet.show({
       options: SHEET,
@@ -34,9 +43,15 @@ class Header extends Component {
   }
 
 
+  toggleSettingsVisibility = (isVisible) => {
+    this.setState({ settingsOverlayVisible: isVisible });
+  }
+
+
   render() {
-    const { arrowDownIcon, dropDownAction } = styles;
+    const { arrowDownIcon, dropDownAction, settingsIcon } = styles;
     const { currentDay } = this.props;
+    const { settingsOverlayVisible } = this.state;
     return (
       <View style={{
         minHeight: 60,
@@ -48,8 +63,9 @@ class Header extends Component {
       }}>
         <View
           style={{
-            justifyContent: 'center',
             flex: 1,
+            flexDirection: 'row',
+            justifyContent: 'center',
             alignItems: 'center',
           }}>
           <TouchableOpacity
@@ -68,7 +84,16 @@ class Header extends Component {
               color={DARK_BLUE}
               style={arrowDownIcon} />
           </TouchableOpacity>
+          <Icon
+            onPress={() => this.toggleSettingsVisibility(true)}
+            type="ionicon"
+            name="ios-settings"
+            containerStyle={settingsIcon}
+            color={DARK_BLUE} />
         </View>
+        <SettingsOverlay
+          onBackdropPress={() => this.toggleSettingsVisibility(false)}
+          isVisible={settingsOverlayVisible} />
       </View>
     );
   }
@@ -79,6 +104,7 @@ const styles = {
   dropDownAction: {
     width: 120,
     height: 40,
+    alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
@@ -86,6 +112,14 @@ const styles = {
   arrowDownIcon: {
     width: 10,
     height: 10,
+  },
+  settingsIcon: {
+    width: 50,
+    padding: 10,
+    position: 'absolute',
+    right: 5,
+    top: 8,
+    height: 50,
   },
 };
 

@@ -116,7 +116,6 @@ class TaskContainer extends Component {
 
 
   addCard = (height, title, duration, dropY) => {
-    console.log('new Task');
     const cardStyle = { ...styles.card };
     cardStyle.height = height;
     const startTime = this.calculateStartTime(dropY);
@@ -149,9 +148,9 @@ class TaskContainer extends Component {
 
 
   renderStack = () => {
-    const { tasks } = this.props;
+    const { tasks, scrollHeight } = this.props;
     const cards = Object.values(tasks).map((task) => {
-      const card = (<Task key={task.index} data={task} />);
+      const card = (<Task key={task.index} data={task} scrollHeight={scrollHeight} />);
       return card;
     });
 
