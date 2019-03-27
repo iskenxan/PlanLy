@@ -2,11 +2,13 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import {
   View, ScrollView, Dimensions,
+  ToastAndroid,
 } from 'react-native';
 import TimeLine from './Timeline';
 import AddItemPanel from './AddItemPanel';
 import TaskContainer from './TaskContainer';
 import Header from './Header';
+import { checkIfTimeAvailable, calculateCardHeight } from '../utils/Formatter';
 import { BG_BLUE } from '../colors';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -28,9 +30,17 @@ class Root extends Component {
 
 
   onTaskDropped = (gestureY) => {
+    const { drag: { duration }, tasks } = this.props;
+    const { scrollHeight } = this.state;
     const panelY = SCREEN_HEIGHT - 230 - 60 + 30;
     const y = this.scrollY + panelY + gestureY;
-    this.setState({ taskDropped: true, dropY: y });
+    const dropHeight = calculateCardHeight(duration, scrollHeight);
+    const available = checkIfTimeAvailable(y, dropHeight, tasks);
+    if (available) {
+      return this.setState({ taskDropped: true, dropY: y });
+    }
+
+    return ToastAndroid.show('Can\'t overlap existing tasks!', ToastAndroid.SHORT);
   }
 
 
@@ -95,8 +105,12 @@ const styles = {
 
 
 function mapStateToProps(state) {
+  const { currentDay, weekPlan } = state.taskData;
+  const { tasks } = weekPlan[currentDay];
+
   return {
     drag: state.drag,
+    tasks,
   };
 }
 

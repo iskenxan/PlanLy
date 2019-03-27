@@ -1,12 +1,14 @@
 /* eslint-disable no-underscore-dangle */
 import React, { Component } from 'react';
-import { View, Animated, PanResponder } from 'react-native';
+import {
+  View, Animated, PanResponder, ToastAndroid,
+} from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import moment from 'moment';
 import { addTask, updateTask } from '../actions/TasksAction';
 import { onDropWidth, setElevatedIndex } from '../actions/DragAnimationActions';
-import { calculateCardHeight, SECONDS_DAY } from '../utils/Formatter';
+import { calculateCardHeight, SECONDS_DAY, checkIfTimeAvailable } from '../utils/Formatter';
 import Task from './Task';
 
 
@@ -56,15 +58,29 @@ class TaskContainer extends Component {
     } = this.props;
     const { elevatedIndex } = drag;
     const elevatedTask = tasks[elevatedIndex];
+    const { style: { height } } = elevatedTask;
     const currentY = elevatedStartY;
 
     const newY = currentY + gestureY;
 
-    const startTime = this.calculateStartTime(newY);
 
-    const newTask = { ...elevatedTask, startTime };
+    const tasksCopy = { ...tasks };
+    delete tasksCopy[elevatedIndex];
+
+    const available = checkIfTimeAvailable(newY, height, tasksCopy);
+    const newTask = { ...elevatedTask };
+
+    if (!available) {
+      ToastAndroid.show('Can\'t overlap existing tasks!', ToastAndroid.SHORT);
+      const { y: { _value: taskY } } = newTask.position;
+      newTask.position.setValue({ x: 0, y: taskY - gestureY });
+    } else {
+      const startTime = this.calculateStartTime(newY);
+      newTask.startTime = startTime;
+    }
+
     updateTaskAction(newTask);
-    setElevatedIndexAction(-1);
+    return setElevatedIndexAction(-1);
   }
 
 
@@ -143,6 +159,7 @@ class TaskContainer extends Component {
     if (moveY <= 5) {
       return setElevatedIndexAction(-1);
     }
+
     return this.rerenderNewCardAndUpdateStack(gesture.dy);
   }
 

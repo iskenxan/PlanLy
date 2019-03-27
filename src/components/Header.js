@@ -5,6 +5,7 @@ import { ActionSheet } from 'native-base';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { setCurrentDay } from '../actions/TasksAction';
+import { toggleSettings } from '../actions/SettingsActions';
 import { DARK_BLUE } from '../colors';
 import SettingsOverlay from './SettingsOverlay';
 
@@ -48,9 +49,24 @@ class Header extends Component {
   }
 
 
+  toggleSmartAdjustments = (isOn) => {
+    const { toggleSettings: toggleSettingsAction } = this.props;
+    toggleSettingsAction('smartAdjustments', isOn);
+  }
+
+
+  toggleNotifications = (isOn) => {
+    const { toggleSettings: toggleSettingsAction } = this.props;
+    toggleSettingsAction('notifications', isOn);
+  }
+
+
   render() {
     const { arrowDownIcon, dropDownAction, settingsIcon } = styles;
-    const { currentDay } = this.props;
+    const {
+      currentDay,
+      settings: { smartAdjustments, notifications },
+    } = this.props;
     const { settingsOverlayVisible } = this.state;
     return (
       <View style={{
@@ -92,6 +108,10 @@ class Header extends Component {
             color={DARK_BLUE} />
         </View>
         <SettingsOverlay
+          notificationsOn={notifications}
+          adjustmentsOn={smartAdjustments} 
+          toggleNotifications={this.toggleNotifications}
+          toggleAdjustments={this.toggleSmartAdjustments}
           onBackdropPress={() => this.toggleSettingsVisibility(false)}
           isVisible={settingsOverlayVisible} />
       </View>
@@ -126,10 +146,12 @@ const styles = {
 
 const mapStateToProps = state => ({
   currentDay: state.taskData.currentDay,
+  settings: state.settings,
 });
 
 const mapDispatchToProps = dispatch => bindActionCreators({
   setCurrentDay,
+  toggleSettings,
 }, dispatch);
 
 

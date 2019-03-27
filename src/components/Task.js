@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import {
   View, Text, Image, Animated,
+  ToastAndroid,
 } from 'react-native';
 import {
   Menu,
@@ -12,7 +13,7 @@ import { Icon } from 'react-native-elements';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { DRAG_BTN } from '../media';
-import { getDurationText, calculateCardHeight } from '../utils/Formatter';
+import { getDurationText, calculateCardHeight, checkIfTimeAvailable } from '../utils/Formatter';
 import { removeTask, updateTask } from '../actions/TasksAction';
 import EditOverlay from './EditTaskOverlay';
 
@@ -90,14 +91,32 @@ class Task extends Component {
 
 
   onEditSavePress = (title, duration) => {
-    const { data, updateTask: updateTaskAction, scrollHeight } = this.props;
+    const {
+      data,
+      updateTask: updateTaskAction,
+      scrollHeight,
+      tasks,
+    } = this.props;
+
+    const newHeight = calculateCardHeight(duration, scrollHeight);
+
+    const { y: { _value: taskY } } = data.position;
+    const tasksCopy = { ...tasks };
+    delete tasksCopy[data.index];
+
+    const available = checkIfTimeAvailable(taskY, newHeight, tasksCopy);
+    if (!available) {
+      ToastAndroid.show('Can\'t overlap existing tasks!', ToastAndroid.SHORT);
+      return this.setState({ overlayVisible: false });
+    }
+
     const newData = { ...data };
     newData.title = title;
     newData.duration = duration;
-    const newHeight = calculateCardHeight(duration, scrollHeight);
     newData.style.height = newHeight;
+
     updateTaskAction(newData);
-    this.setState({ overlayVisible: false });
+    return this.setState({ overlayVisible: false });
   }
 
 
@@ -178,8 +197,11 @@ const styles = {
 
 
 function mapStateToProps(state) {
+  const { currentDay, weekPlan } = state.taskData;
+  const { tasks } = weekPlan[currentDay];
   return {
     drag: state.drag,
+    tasks,
   };
 }
 

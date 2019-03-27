@@ -26,3 +26,26 @@ export const calculateCardHeight = (duration, scrollHeight) => {
 
   return height;
 };
+
+
+export const checkIfTimeAvailable = (dropY, dropHeight, tasks) => {
+  let available = true;
+  Object.values(tasks).forEach((task) => {
+    const {
+      position: { y: positionY },
+      style: { height },
+    } = task;
+    // eslint-disable-next-line no-underscore-dangle
+    const taskY = positionY._value;
+    const dropBottomY = dropY + dropHeight;
+    if ((dropY >= taskY && dropY <= taskY + height)
+      || (dropBottomY >= taskY && dropBottomY <= taskY + height)) {
+      available = false;
+    }
+    if (dropY < taskY && dropBottomY >= taskY) {
+      available = false;
+    }
+  });
+
+  return available;
+};

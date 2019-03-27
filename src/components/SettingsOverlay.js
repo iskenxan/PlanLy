@@ -8,7 +8,14 @@ import {
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
-export default function SettingsOverlay({ isVisible, onBackdropPress }) {
+export default function SettingsOverlay({
+  isVisible,
+  onBackdropPress,
+  toggleAdjustments,
+  toggleNotifications,
+  notificationsOn,
+  adjustmentsOn,
+}) {
   const width = SCREEN_WIDTH * 0.93;
 
   return (
@@ -47,11 +54,11 @@ export default function SettingsOverlay({ isVisible, onBackdropPress }) {
             color={DARK_BLUE}
             size={20} />
           <ToggleSwitch
-            isOn={false}
+            isOn={adjustmentsOn}
             onColor={ACCENT_ORANGE}
             offColor={LIGHT_GRAY}
             size="medium"
-            onToggle={isOn => console.log('changed to : ', isOn)} />
+            onToggle={toggleAdjustments} />
         </View>
 
         <View style={{
@@ -68,11 +75,11 @@ export default function SettingsOverlay({ isVisible, onBackdropPress }) {
             Notifications
           </Text>
           <ToggleSwitch
-            isOn={false}
+            isOn={notificationsOn}
             onColor={ACCENT_ORANGE}
             offColor={LIGHT_GRAY}
             size="medium"
-            onToggle={isOn => console.log('changed to : ', isOn)} />
+            onToggle={toggleNotifications} />
         </View>
 
       </View>

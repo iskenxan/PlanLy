@@ -21,5 +21,3 @@ export const setElevatedIndex = index => ({
   type: SET_ELEVATED_TASK,
   payload: index,
 });
-
-
