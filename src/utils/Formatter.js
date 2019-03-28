@@ -28,6 +28,15 @@ export const calculateCardHeight = (duration, scrollHeight) => {
 };
 
 
+export const calculateDuration = (height, scrollHeight) => {
+  const unit = MINUTES_DAY / scrollHeight;
+  let minutes = Math.ceil(height * unit);
+  minutes = Math.floor(minutes / 5) * 5;
+
+  return minutes;
+};
+
+
 export const checkIfTimeAvailable = (dropY, dropHeight, tasks) => {
   let available = true;
   Object.values(tasks).forEach((task) => {

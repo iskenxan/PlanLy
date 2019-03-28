@@ -10,6 +10,7 @@ import { addTask, updateTask } from '../actions/TasksAction';
 import { onDropWidth, setElevatedIndex } from '../actions/DragAnimationActions';
 import { calculateCardHeight, SECONDS_DAY, checkIfTimeAvailable } from '../utils/Formatter';
 import Task from './Task';
+import Break from './Break';
 
 
 class TaskContainer extends Component {
@@ -165,11 +166,37 @@ class TaskContainer extends Component {
 
 
   renderStack = () => {
-    const { tasks, scrollHeight } = this.props;
-    const cards = Object.values(tasks).map((task) => {
-      const card = (<Task key={task.index} data={task} scrollHeight={scrollHeight} />);
-      return card;
-    });
+    const { tasks, scrollHeight, drag: { elevatedIndex } } = this.props;
+    const cards = Object.values(tasks)
+      .map(task => <Task key={task.index} data={task} scrollHeight={scrollHeight} />);
+
+    console.log({ elevatedIndex });
+    if (elevatedIndex !== -1) return cards;
+
+
+    const taskYs = Object.values(tasks).map(task => ({
+      y: task.position.y._value,
+      height: task.style.height,
+    }));
+
+    taskYs.sort((a, b) => a.y - b.y);
+
+
+    for (let i = 0; i < taskYs.length - 1; i += 1) {
+      const { y: startY, height: startHeight } = taskYs[i];
+      const { y: endY } = taskYs[i + 1];
+      const startTime = startY + startHeight;
+      const endTime = endY;
+      const height = endTime - startTime;
+
+      cards.push(
+        <Break
+          key={`b${i}`}
+          height={height}
+          scrollHeight={scrollHeight}
+          startY={startTime} />,
+      );
+    }
 
     return cards;
   }
