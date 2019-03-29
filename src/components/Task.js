@@ -12,6 +12,7 @@ import {
 import { Icon } from 'react-native-elements';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import moment from 'moment';
 import { DRAG_BTN } from '../media';
 import { getDurationText, calculateCardHeight, checkIfTimeAvailable } from '../utils/Formatter';
 import { removeTask, updateTask } from '../actions/TasksAction';
@@ -135,6 +136,10 @@ class Task extends Component {
     } = this.props;
 
     const newStyle = this.getElevatedCardStyle(style);
+    const endMoment = moment(startTime, ['h:mm a']);
+    endMoment.add(duration, 'm');
+
+    const endTime = endMoment.format('h:mm a');
 
     return (
       <Animated.View
@@ -155,7 +160,18 @@ class Task extends Component {
         <View style={styles.cardTitle}>
           <Text style={{ textAlign: 'center' }}>{title}</Text>
         </View>
-        <Text style={styles.cardBottom}>{getDurationText(duration)}</Text>
+        <View style={styles.cardBottom}>
+          <Text style={{
+            alignSelf: 'flex-start',
+          }}>
+            {endTime}
+          </Text>
+          <Text style={{
+            marginLeft: 'auto',
+          }}>
+            {getDurationText(duration)}
+          </Text>
+        </View>
         <EditOverlay
           title={title}
           duration={duration}
@@ -183,7 +199,7 @@ const styles = {
   },
   cardBottom: {
     alignSelf: 'stretch',
-    textAlign: 'right',
+    flexDirection: 'row',
   },
   cardDrag: {
     position: 'absolute',

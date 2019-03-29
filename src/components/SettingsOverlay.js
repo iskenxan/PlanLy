@@ -1,9 +1,11 @@
 import React from 'react';
 import { View, Text, Dimensions } from 'react-native';
 import ToggleSwitch from 'toggle-switch-react-native';
-import { Overlay, Icon } from 'react-native-elements';
+import { Overlay } from 'react-native-elements';
 import {
-  DARK_BLUE, MED_BLUE, ACCENT_ORANGE, LIGHT_GRAY,
+  DARK_BLUE, MED_BLUE,
+  ACCENT_ORANGE,
+  LIGHT_GRAY,
 } from '../colors';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -23,12 +25,13 @@ export default function SettingsOverlay({
       onBackdropPress={onBackdropPress}
       isVisible={isVisible}
       width={width}
-      height={210}>
+      height={300}>
       <View style={styles.root}>
         <Text style={{
           fontSize: 20,
           fontWeight: '700',
           color: DARK_BLUE,
+          marginBottom: 10,
         }}>
             Settings
         </Text>
@@ -44,15 +47,6 @@ export default function SettingsOverlay({
           }}>
             Smart Adjustments
           </Text>
-          <Icon
-            type="material"
-            name="info"
-            containerStyle={{
-              marginRight: 'auto',
-              marginLeft: 10,
-            }}
-            color={DARK_BLUE}
-            size={20} />
           <ToggleSwitch
             isOn={adjustmentsOn}
             onColor={ACCENT_ORANGE}
@@ -60,6 +54,13 @@ export default function SettingsOverlay({
             size="medium"
             onToggle={toggleAdjustments} />
         </View>
+        <Text style={{
+          color: LIGHT_GRAY,
+          marginBottom: 20,
+        }}>
+          Changing time or duration for a task will cause the
+           following tasks to also adopt the change.
+        </Text>
 
         <View style={{
           alignItems: 'center',

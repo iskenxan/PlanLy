@@ -148,6 +148,20 @@ class TaskContainer extends Component {
   }
 
 
+  getTaskTimes = (tasks) => {
+    const taskTimes = Object.values(tasks).map(task => ({
+      y: task.position.y._value,
+      height: task.style.height,
+      startTime: task.startTime,
+      duration: task.duration,
+    }));
+
+    taskTimes.sort((a, b) => a.y - b.y);
+
+    return taskTimes;
+  }
+
+
   handleResponderRelease(gesture) {
     const {
       drag: { elevatedIndex }, tasks,
@@ -165,38 +179,48 @@ class TaskContainer extends Component {
   }
 
 
+  renderBreaks = (cards, tasks) => {
+    const taskTimes = this.getTaskTimes(tasks);
+
+
+    for (let i = 0; i < taskTimes.length - 1; i += 1) {
+      const {
+        y: firstTaskY,
+        height: startHeight,
+        startTime: firstTaskStart,
+        duration,
+      } = taskTimes[i];
+      const { y: endY, startTime: nextTaskStart } = taskTimes[i + 1];
+      const breakY = firstTaskY + startHeight;
+      const endTime = endY;
+      const height = endTime - breakY;
+
+      const startMoment = moment(firstTaskStart, ['h:mm A']);
+      startMoment.add(duration, 'm');
+      const endMoment = moment(nextTaskStart, ['h:mm A']);
+
+      const breakDuration = endMoment.diff(startMoment, 'm');
+      if (breakDuration >= 5) {
+        cards.push(
+          <Break
+            duration={breakDuration}
+            key={`b${i}`}
+            height={height}
+            startY={breakY} />,
+        );
+      }
+    }
+  }
+
+
   renderStack = () => {
     const { tasks, scrollHeight, drag: { elevatedIndex } } = this.props;
     const cards = Object.values(tasks)
       .map(task => <Task key={task.index} data={task} scrollHeight={scrollHeight} />);
 
-    console.log({ elevatedIndex });
+
     if (elevatedIndex !== -1) return cards;
-
-
-    const taskYs = Object.values(tasks).map(task => ({
-      y: task.position.y._value,
-      height: task.style.height,
-    }));
-
-    taskYs.sort((a, b) => a.y - b.y);
-
-
-    for (let i = 0; i < taskYs.length - 1; i += 1) {
-      const { y: startY, height: startHeight } = taskYs[i];
-      const { y: endY } = taskYs[i + 1];
-      const startTime = startY + startHeight;
-      const endTime = endY;
-      const height = endTime - startTime;
-
-      cards.push(
-        <Break
-          key={`b${i}`}
-          height={height}
-          scrollHeight={scrollHeight}
-          startY={startTime} />,
-      );
-    }
+    this.renderBreaks(cards, tasks);
 
     return cards;
   }
