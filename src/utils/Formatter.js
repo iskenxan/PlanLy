@@ -32,11 +32,10 @@ export const checkIfTimeAvailable = (dropY, dropHeight, tasks) => {
   let available = true;
   Object.values(tasks).forEach((task) => {
     const {
-      position: { y: positionY },
+      y: taskY,
       style: { height },
     } = task;
-    // eslint-disable-next-line no-underscore-dangle
-    const taskY = positionY._value || positionY;
+
     const dropBottomY = dropY + dropHeight;
     if ((dropY >= taskY && dropY <= taskY + height)
       || (dropBottomY >= taskY && dropBottomY <= taskY + height)) {

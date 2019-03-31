@@ -19,7 +19,9 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import moment from 'moment';
 import { DRAG_BTN } from '../media';
-import { getDurationText, calculateCardHeight, checkIfTimeAvailable } from '../utils/Formatter';
+import {
+  getDurationText, calculateCardHeight, checkIfTimeAvailable, SECONDS_DAY,
+} from '../utils/Formatter';
 import { removeTask, updateTask } from '../actions/TasksAction';
 import { setElevatedIndex } from '../actions/DragAnimationActions';
 import EditOverlay from './EditTaskOverlay';
@@ -32,29 +34,74 @@ class Task extends Component {
       isElevated: false,
       overlayVisible: false,
     };
-    const { position: { x, y }, index } = props.data;
-    this.position = new Animated.ValueXY({ x, y });
+
+    const { y, index } = props.data;
+    this.position = new Animated.ValueXY({ x: 0, y });
     this.panResponder = this.createPanResponder(this.position, index);
   }
 
 
   componentWillReceiveProps(nextProps) {
     let isElevated = false;
-    const { elevatedIndex } = nextProps.drag;
+    const { drag: { elevatedIndex }, data: { y } } = nextProps;
     const { data: { index } } = this.props;
 
     if (elevatedIndex === index) {
       isElevated = true;
     }
+
     this.setState({ isElevated });
+  }
+
+  calculateStartTime = (y) => {
+    const { scrollHeight } = this.props;
+    const unit = Math.fround(SECONDS_DAY / scrollHeight);
+    const seconds = y * unit;
+
+    const current = moment().startOf('day');
+    current.add(seconds, 'S');
+    let minutes = current.get('minutes');
+    minutes = Math.floor(minutes / 5) * 5;
+    current.set('minutes', minutes);
+
+    const text = current.format('h:mm a');
+
+    return text;
+  }
+
+  rerenderNewCardAndUpdateStack = (gestureY) => {
+    const {
+      drag, tasks,
+      updateTask: updateTaskAction,
+    } = this.props;
+    const { elevatedIndex } = drag;
+    const elevatedTask = tasks[elevatedIndex];
+    const { style: { height } } = elevatedTask;
+    const y = this.position.y._value;
+
+    const tasksCopy = { ...tasks };
+    delete tasksCopy[elevatedIndex];
+
+    const available = checkIfTimeAvailable(y, height, tasksCopy);
+    const newTask = { ...elevatedTask };
+
+
+    if (!available) {
+      ToastAndroid.show('Can\'t overlap existing tasks!', ToastAndroid.SHORT);
+      this.position.setValue({ x: 0, y: y - gestureY });
+    } else {
+      const startTime = this.calculateStartTime(y);
+      newTask.y = y;
+      newTask.startTime = startTime;
+    }
+
+    updateTaskAction(newTask);
   }
 
 
   createPanResponder = (position, index) => {
     const {
-      handleResponderRelease,
       setElevatedIndex: setElevatedIndexAction,
-      onElevatedY,
     } = this.props;
     const panResponder = PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -69,17 +116,16 @@ class Task extends Component {
         position.setOffset({ x: position.x._value, y: currentY });
         position.setValue({ x: 0, y: 0 });
         setElevatedIndexAction(index);
-        onElevatedY(currentY);
       },
       onPanResponderRelease: (e, gesture) => {
         position.flattenOffset();
         setElevatedIndexAction(-1);
-        handleResponderRelease(gesture);
+        this.rerenderNewCardAndUpdateStack(gesture.dy);
       },
       onPanResponderTerminate: (e, gesture) => {
         position.flattenOffset();
         setElevatedIndexAction(-1);
-        handleResponderRelease(gesture);
+        this.rerenderNewCardAndUpdateStack(gesture.dy);
       },
     });
 
@@ -147,11 +193,11 @@ class Task extends Component {
 
     const newHeight = calculateCardHeight(duration, scrollHeight);
 
-    const { y: { _value: taskY } } = data.position;
+    const { y } = data;
     const tasksCopy = { ...tasks };
     delete tasksCopy[data.index];
 
-    const available = checkIfTimeAvailable(taskY, newHeight, tasksCopy);
+    const available = checkIfTimeAvailable(y, newHeight, tasksCopy);
     if (!available) {
       ToastAndroid.show('Can\'t overlap existing tasks!', ToastAndroid.SHORT);
       return this.setState({ overlayVisible: false });
