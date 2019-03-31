@@ -36,7 +36,7 @@ export const checkIfTimeAvailable = (dropY, dropHeight, tasks) => {
       style: { height },
     } = task;
     // eslint-disable-next-line no-underscore-dangle
-    const taskY = positionY._value;
+    const taskY = positionY._value || positionY;
     const dropBottomY = dropY + dropHeight;
     if ((dropY >= taskY && dropY <= taskY + height)
       || (dropBottomY >= taskY && dropBottomY <= taskY + height)) {

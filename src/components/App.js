@@ -1,29 +1,22 @@
-/* eslint-disable no-underscore-dangle */
-import React, { Component } from 'react';
+import React from 'react';
 import { Provider } from 'react-redux';
-import { createStore } from 'redux';
+import { PersistGate } from 'redux-persist/integration/react';
 import { MenuProvider } from 'react-native-popup-menu';
-import { Root } from 'native-base';
-import reducers from '../reducers';
+import { Root, Spinner } from 'native-base';
 import AppRoot from './Root';
+import { store, persistor } from './Store';
 
 
-class App extends Component {
-  getStore = () => createStore(reducers, global.window.__REDUX_DEVTOOLS_EXTENSION__
-      && global.window.__REDUX_DEVTOOLS_EXTENSION__())
-
-
-  render() {
-    return (
-      <Provider store={this.getStore()}>
-        <Root>
-          <MenuProvider>
-            <AppRoot />
-          </MenuProvider>
-        </Root>
-      </Provider>
-    );
-  }
-}
+const App = () => (
+  <Provider store={store}>
+    <PersistGate loading={<Spinner />} persistor={persistor}>
+      <Root>
+        <MenuProvider>
+          <AppRoot />
+        </MenuProvider>
+      </Root>
+    </PersistGate>
+  </Provider>
+);
 
 export default App;

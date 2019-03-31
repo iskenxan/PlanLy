@@ -1,7 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 import React, { Component } from 'react';
 import {
-  View, Animated, PanResponder, ToastAndroid,
+  View, Animated, ToastAndroid,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -55,7 +55,6 @@ class TaskContainer extends Component {
     const {
       drag, tasks,
       updateTask: updateTaskAction,
-      setElevatedIndex: setElevatedIndexAction,
     } = this.props;
     const { elevatedIndex } = drag;
     const elevatedTask = tasks[elevatedIndex];
@@ -70,53 +69,19 @@ class TaskContainer extends Component {
 
     const available = checkIfTimeAvailable(newY, height, tasksCopy);
     const newTask = { ...elevatedTask };
+    const { y } = newTask.position;
+    const taskY = y._value || y;
 
     if (!available) {
       ToastAndroid.show('Can\'t overlap existing tasks!', ToastAndroid.SHORT);
-      const { y: { _value: taskY } } = newTask.position;
       newTask.position.setValue({ x: 0, y: taskY - gestureY });
     } else {
       const startTime = this.calculateStartTime(newY);
+      newTask.position.setValue({ x: 0, y: newY });
       newTask.startTime = startTime;
     }
 
     updateTaskAction(newTask);
-    return setElevatedIndexAction(-1);
-  }
-
-
-  createPanResponder = (index) => {
-    const panResponder = PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onStartShouldSetPanResponderCapture: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponderCapture: () => true,
-      onPanResponderMove: (event, gesture) => {
-        const { drag, tasks } = this.props;
-        const { elevatedIndex } = drag;
-        const { position } = tasks[elevatedIndex];
-        position.setValue({ x: gesture.dx, y: gesture.dy });
-      },
-      onPanResponderGrant: () => {
-        const { tasks, setElevatedIndex: setElevatedIndexAction } = this.props;
-        const task = tasks[index];
-        const { position } = task;
-        const currentY = position.y._value;
-
-        position.setOffset({ x: position.x._value, y: currentY });
-        position.setValue({ x: 0, y: 0 });
-        setElevatedIndexAction(task.index);
-        this.setState({ elevatedStartY: currentY });
-      },
-      onPanResponderRelease: (e, gesture) => {
-        this.handleResponderRelease(gesture);
-      },
-      onPanResponderTerminate: (e, gesture) => {
-        this.handleResponderRelease(gesture);
-      },
-    });
-
-    return panResponder;
   }
 
 
@@ -124,9 +89,8 @@ class TaskContainer extends Component {
     const { currentIndex: index, addTask: addTaskAction } = this.props;
     const position = new Animated.ValueXY();
     position.setValue({ x: 0, y });
-    const panResponder = this.createPanResponder(index);
     const task = {
-      index, title, duration, startTime, position, panResponder, style: cardStyle,
+      index, title, duration, startTime, position, style: cardStyle,
     };
     addTaskAction(task);
   }
@@ -149,12 +113,15 @@ class TaskContainer extends Component {
 
 
   getTaskTimes = (tasks) => {
-    const taskTimes = Object.values(tasks).map(task => ({
-      y: task.position.y._value,
-      height: task.style.height,
-      startTime: task.startTime,
-      duration: task.duration,
-    }));
+    const taskTimes = Object.values(tasks).map((task) => {
+      const { position } = task;
+      return {
+        y: position.y._value || position.y,
+        height: task.style.height,
+        startTime: task.startTime,
+        duration: task.duration,
+      };
+    });
 
     taskTimes.sort((a, b) => a.y - b.y);
 
@@ -162,26 +129,18 @@ class TaskContainer extends Component {
   }
 
 
-  handleResponderRelease(gesture) {
-    const {
-      drag: { elevatedIndex }, tasks,
-      setElevatedIndex: setElevatedIndexAction,
-    } = this.props;
-    const { position } = tasks[elevatedIndex];
+  handleResponderRelease = (gesture) => {
     const moveY = Math.abs(gesture.dy);
-    position.flattenOffset();
-
     if (moveY <= 5) {
-      return setElevatedIndexAction(-1);
+      return;
     }
 
-    return this.rerenderNewCardAndUpdateStack(gesture.dy);
+    this.rerenderNewCardAndUpdateStack(gesture.dy);
   }
 
 
   renderBreaks = (cards, tasks) => {
     const taskTimes = this.getTaskTimes(tasks);
-
 
     for (let i = 0; i < taskTimes.length - 1; i += 1) {
       const {
@@ -216,7 +175,14 @@ class TaskContainer extends Component {
   renderStack = () => {
     const { tasks, scrollHeight, drag: { elevatedIndex } } = this.props;
     const cards = Object.values(tasks)
-      .map(task => <Task key={task.index} data={task} scrollHeight={scrollHeight} />);
+      .map(task => (
+        <Task
+          key={task.index}
+          data={task}
+          onElevatedY={newY => this.setState({ elevatedStartY: newY })}
+          handleResponderRelease={this.handleResponderRelease}
+          scrollHeight={scrollHeight} />
+      ));
 
 
     if (elevatedIndex !== -1) return cards;
@@ -227,6 +193,7 @@ class TaskContainer extends Component {
 
 
   render() {
+    console.log('render');
     return (
       <View onLayout={this.onLayout} style={styles.container}>
         {this.renderStack()}

@@ -109,7 +109,7 @@ class Header extends Component {
         </View>
         <SettingsOverlay
           notificationsOn={notifications}
-          adjustmentsOn={smartAdjustments} 
+          adjustmentsOn={smartAdjustments}
           toggleNotifications={this.toggleNotifications}
           toggleAdjustments={this.toggleSmartAdjustments}
           onBackdropPress={() => this.toggleSettingsVisibility(false)}

@@ -1,6 +1,11 @@
+/* eslint-disable no-underscore-dangle */
 import React, { Component } from 'react';
 import {
-  View, Text, Image, Animated,
+  View,
+  Text,
+  Image,
+  Animated,
+  PanResponder,
   ToastAndroid,
 } from 'react-native';
 import {
@@ -16,6 +21,7 @@ import moment from 'moment';
 import { DRAG_BTN } from '../media';
 import { getDurationText, calculateCardHeight, checkIfTimeAvailable } from '../utils/Formatter';
 import { removeTask, updateTask } from '../actions/TasksAction';
+import { setElevatedIndex } from '../actions/DragAnimationActions';
 import EditOverlay from './EditTaskOverlay';
 
 
@@ -26,6 +32,9 @@ class Task extends Component {
       isElevated: false,
       overlayVisible: false,
     };
+    const { position: { x, y }, index } = props.data;
+    this.position = new Animated.ValueXY({ x, y });
+    this.panResponder = this.createPanResponder(this.position, index);
   }
 
 
@@ -38,6 +47,43 @@ class Task extends Component {
       isElevated = true;
     }
     this.setState({ isElevated });
+  }
+
+
+  createPanResponder = (position, index) => {
+    const {
+      handleResponderRelease,
+      setElevatedIndex: setElevatedIndexAction,
+      onElevatedY,
+    } = this.props;
+    const panResponder = PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponderCapture: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponderCapture: () => true,
+      onPanResponderMove: (event, gesture) => {
+        position.setValue({ x: gesture.dx, y: gesture.dy });
+      },
+      onPanResponderGrant: () => {
+        const currentY = position.y._value;
+        position.setOffset({ x: position.x._value, y: currentY });
+        position.setValue({ x: 0, y: 0 });
+        setElevatedIndexAction(index);
+        onElevatedY(currentY);
+      },
+      onPanResponderRelease: (e, gesture) => {
+        position.flattenOffset();
+        setElevatedIndexAction(-1);
+        handleResponderRelease(gesture);
+      },
+      onPanResponderTerminate: (e, gesture) => {
+        position.flattenOffset();
+        setElevatedIndexAction(-1);
+        handleResponderRelease(gesture);
+      },
+    });
+
+    return panResponder;
   }
 
 
@@ -126,8 +172,6 @@ class Task extends Component {
     const {
       data: {
         index,
-        position,
-        panResponder,
         startTime,
         title,
         duration,
@@ -144,9 +188,9 @@ class Task extends Component {
     return (
       <Animated.View
         key={index}
-        style={{ ...position.getLayout(), ...newStyle }}>
+        style={{ ...this.position.getLayout(), ...newStyle }}>
         <Image
-          {...panResponder.panHandlers}
+          {...this.panResponder.panHandlers}
           source={DRAG_BTN}
           style={styles.cardDrag} />
         <View style={styles.cardTop}>
@@ -226,6 +270,7 @@ function mapDispatchToProps(dispatch) {
   return bindActionCreators({
     removeTask,
     updateTask,
+    setElevatedIndex,
   }, dispatch);
 }
 
