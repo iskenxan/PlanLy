@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
+import moment from 'moment';
 import { getDurationText } from '../utils/Formatter';
 import { LIGHT_BLUE, PALE_BLUE } from '../colors';
 
@@ -35,6 +36,62 @@ const Break = ({
   );
 };
 
+const getTaskTimes = (tasks) => {
+  const taskTimes = Object.values(tasks).map((task) => {
+    const {
+      y,
+      style: { height },
+      startTime,
+      duration,
+    } = task;
+    return {
+      y,
+      height,
+      startTime,
+      duration,
+    };
+  });
+
+  taskTimes.sort((a, b) => a.y - b.y);
+
+  return taskTimes;
+};
+
+
+const renderBreaks = (tasks) => {
+  const breaks = [];
+  const taskTimes = getTaskTimes(tasks);
+
+  for (let i = 0; i < taskTimes.length - 1; i += 1) {
+    const {
+      y: firstTaskY,
+      height: startHeight,
+      startTime: firstTaskStart,
+      duration,
+    } = taskTimes[i];
+    const { y: endY, startTime: nextTaskStart } = taskTimes[i + 1];
+    const breakY = firstTaskY + startHeight;
+    const height = endY - breakY;
+
+    const startMoment = moment(firstTaskStart, ['h:mm A']);
+    startMoment.add(duration, 'm');
+    const endMoment = moment(nextTaskStart, ['h:mm A']);
+
+    const breakDuration = endMoment.diff(startMoment, 'm');
+    if (breakDuration >= 5) {
+      breaks.push(
+        <Break
+          duration={breakDuration}
+          key={`b${i}`}
+          height={height}
+          startY={breakY} />,
+      );
+    }
+  }
+
+  return breaks;
+};
+
 
 const styles = {
   container: {
@@ -60,4 +117,6 @@ const styles = {
 };
 
 
-export default Break;
+module.exports = {
+  renderBreaks,
+};

@@ -1,16 +1,15 @@
-/* eslint-disable no-underscore-dangle */
 import React, { Component } from 'react';
 import {
   View,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import moment from 'moment';
+
 import { addTask, updateTask } from '../actions/TasksAction';
 import { onDropWidth, setElevatedIndex } from '../actions/DragAnimationActions';
 import { calculateCardHeight, calculateStartTime } from '../utils/Formatter';
 import Task from './Task';
-import Break from './Break';
+import { renderBreaks } from './Break';
 
 
 class TaskContainer extends Component {
@@ -51,63 +50,9 @@ class TaskContainer extends Component {
   }
 
 
-  getTaskTimes = (tasks) => {
-    const taskTimes = Object.values(tasks).map((task) => {
-      const {
-        y,
-        style: { height },
-        startTime,
-        duration,
-      } = task;
-      return {
-        y,
-        height,
-        startTime,
-        duration,
-      };
-    });
-
-    taskTimes.sort((a, b) => a.y - b.y);
-
-    return taskTimes;
-  }
-
-
-  renderBreaks = (cards, tasks) => {
-    const taskTimes = this.getTaskTimes(tasks);
-
-    for (let i = 0; i < taskTimes.length - 1; i += 1) {
-      const {
-        y: firstTaskY,
-        height: startHeight,
-        startTime: firstTaskStart,
-        duration,
-      } = taskTimes[i];
-      const { y: endY, startTime: nextTaskStart } = taskTimes[i + 1];
-      const breakY = firstTaskY + startHeight;
-      const height = endY - breakY;
-
-      const startMoment = moment(firstTaskStart, ['h:mm A']);
-      startMoment.add(duration, 'm');
-      const endMoment = moment(nextTaskStart, ['h:mm A']);
-
-      const breakDuration = endMoment.diff(startMoment, 'm');
-      if (breakDuration >= 5) {
-        cards.push(
-          <Break
-            duration={breakDuration}
-            key={`b${i}`}
-            height={height}
-            startY={breakY} />,
-        );
-      }
-    }
-  }
-
-
   renderStack = () => {
     const { tasks, scrollHeight, drag: { elevatedIndex } } = this.props;
-    const cards = Object.values(tasks)
+    let cards = Object.values(tasks)
       .map(task => (
         <Task
           key={task.index}
@@ -118,7 +63,10 @@ class TaskContainer extends Component {
 
 
     if (elevatedIndex !== -1) return cards;
-    this.renderBreaks(cards, tasks);
+
+    const breaks = renderBreaks(tasks);
+
+    cards = [...cards, ...breaks];
 
     return cards;
   }
@@ -154,7 +102,6 @@ function mapStateToProps(state) {
   const { weekPlan, currentDay } = state.taskData;
   return {
     drag: state.drag,
-    currentDay: state.taskData.currentDay,
     tasks: weekPlan[currentDay].tasks,
     currentIndex: weekPlan[currentDay].currentIndex,
   };

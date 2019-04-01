@@ -88,6 +88,16 @@ class Task extends Component {
   }
 
 
+  onPanResponderRelease = (position, gesture) => {
+    const {
+      setElevatedIndex: setElevatedIndexAction,
+    } = this.props;
+    position.flattenOffset();
+    setElevatedIndexAction(-1);
+    this.rerenderNewCardAndUpdateStack(gesture.dy);
+  }
+
+
   createPanResponder = (position, index) => {
     const {
       setElevatedIndex: setElevatedIndexAction,
@@ -107,14 +117,10 @@ class Task extends Component {
         setElevatedIndexAction(index);
       },
       onPanResponderRelease: (e, gesture) => {
-        position.flattenOffset();
-        setElevatedIndexAction(-1);
-        this.rerenderNewCardAndUpdateStack(gesture.dy);
+        this.onPanResponderRelease(position, gesture);
       },
       onPanResponderTerminate: (e, gesture) => {
-        position.flattenOffset();
-        setElevatedIndexAction(-1);
-        this.rerenderNewCardAndUpdateStack(gesture.dy);
+        this.onPanResponderRelease(position, gesture);
       },
     });
 
