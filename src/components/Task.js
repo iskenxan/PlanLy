@@ -20,7 +20,10 @@ import { bindActionCreators } from 'redux';
 import moment from 'moment';
 import { DRAG_BTN } from '../media';
 import {
-  getDurationText, calculateCardHeight, checkIfTimeAvailable, SECONDS_DAY,
+  getDurationText,
+  calculateCardHeight,
+  checkIfTimeAvailable,
+  calculateStartTime,
 } from '../utils/Formatter';
 import { removeTask, updateTask } from '../actions/TasksAction';
 import { setElevatedIndex } from '../actions/DragAnimationActions';
@@ -43,7 +46,7 @@ class Task extends Component {
 
   componentWillReceiveProps(nextProps) {
     let isElevated = false;
-    const { drag: { elevatedIndex }, data: { y } } = nextProps;
+    const { drag: { elevatedIndex } } = nextProps;
     const { data: { index } } = this.props;
 
     if (elevatedIndex === index) {
@@ -53,26 +56,12 @@ class Task extends Component {
     this.setState({ isElevated });
   }
 
-  calculateStartTime = (y) => {
-    const { scrollHeight } = this.props;
-    const unit = Math.fround(SECONDS_DAY / scrollHeight);
-    const seconds = y * unit;
-
-    const current = moment().startOf('day');
-    current.add(seconds, 'S');
-    let minutes = current.get('minutes');
-    minutes = Math.floor(minutes / 5) * 5;
-    current.set('minutes', minutes);
-
-    const text = current.format('h:mm a');
-
-    return text;
-  }
 
   rerenderNewCardAndUpdateStack = (gestureY) => {
     const {
       drag, tasks,
       updateTask: updateTaskAction,
+      scrollHeight,
     } = this.props;
     const { elevatedIndex } = drag;
     const elevatedTask = tasks[elevatedIndex];
@@ -90,7 +79,7 @@ class Task extends Component {
       ToastAndroid.show('Can\'t overlap existing tasks!', ToastAndroid.SHORT);
       this.position.setValue({ x: 0, y: y - gestureY });
     } else {
-      const startTime = this.calculateStartTime(y);
+      const startTime = calculateStartTime(y, scrollHeight);
       newTask.y = y;
       newTask.startTime = startTime;
     }

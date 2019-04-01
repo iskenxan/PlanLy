@@ -1,3 +1,6 @@
+import moment from 'moment';
+
+
 export const SECONDS_DAY = 87000;
 export const MINUTES_DAY = 1440;
 
@@ -47,4 +50,20 @@ export const checkIfTimeAvailable = (dropY, dropHeight, tasks) => {
   });
 
   return available;
+};
+
+
+export const calculateStartTime = (y, scrollHeight) => {
+  const unit = Math.fround(SECONDS_DAY / scrollHeight);
+  const seconds = y * unit;
+
+  const current = moment().startOf('day');
+  current.add(seconds, 'S');
+  let minutes = current.get('minutes');
+  minutes = Math.floor(minutes / 5) * 5;
+  current.set('minutes', minutes);
+
+  const text = current.format('h:mm a');
+
+  return text;
 };
