@@ -1,14 +1,21 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import {
-  View, ScrollView, Dimensions,
+  View,
+  ScrollView,
+  Dimensions,
   ToastAndroid,
+  InteractionManager,
 } from 'react-native';
 import TimeLine from './Timeline';
 import AddItemPanel from './AddItemPanel';
 import TaskContainer from './TaskContainer';
 import Header from './Header';
-import { checkIfTimeAvailable, calculateCardHeight } from '../utils/Formatter';
+import {
+  checkIfTimeAvailable,
+  calculateCardHeight,
+  MINUTES_DAY,
+} from '../utils/Formatter';
 import { BG_BLUE } from '../colors';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -57,6 +64,11 @@ class Root extends Component {
 
   handleScrollContentSizeChange = (width, height) => {
     this.setState({ scrollHeight: height });
+    InteractionManager.runAfterInteractions(() => {
+      const y = height / MINUTES_DAY * 7 * 60;
+
+      this.scroll.scrollTo({ y, x: 0, animated: false });
+    });
   }
 
 
@@ -71,6 +83,7 @@ class Root extends Component {
       <View style={{ flex: 1, backgroundColor: BG_BLUE }}>
         <Header />
         <ScrollView
+          ref={(ref) => { this.scroll = ref; }}
           contentContainerStyle={styles.scroll}
           onScroll={this.handleScroll}
           onContentSizeChange={this.handleScrollContentSizeChange}
