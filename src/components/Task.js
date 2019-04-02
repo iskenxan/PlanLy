@@ -61,7 +61,6 @@ class Task extends Component {
     const {
       drag, tasks,
       updateTask: updateTaskAction,
-      scrollHeight,
     } = this.props;
     const { elevatedIndex } = drag;
     const elevatedTask = tasks[elevatedIndex];
@@ -79,9 +78,7 @@ class Task extends Component {
       ToastAndroid.show('Can\'t overlap existing tasks!', ToastAndroid.SHORT);
       this.position.setValue({ x: 0, y: y - gestureY });
     } else {
-      const startTime = calculateStartTime(y, scrollHeight);
       newTask.y = y;
-      newTask.startTime = startTime;
     }
 
     updateTaskAction(newTask);
@@ -213,13 +210,15 @@ class Task extends Component {
     const {
       data: {
         index,
-        startTime,
         title,
         duration,
         style,
+        y,
       },
+      scrollHeight,
     } = this.props;
 
+    const startTime = calculateStartTime(y, scrollHeight);
     const newStyle = this.getElevatedCardStyle(style);
     const endMoment = moment(startTime, ['h:mm a']);
     endMoment.add(duration, 'm');

@@ -7,7 +7,7 @@ import { bindActionCreators } from 'redux';
 
 import { addTask, updateTask } from '../actions/TasksAction';
 import { onDropWidth, setElevatedIndex } from '../actions/DragAnimationActions';
-import { calculateCardHeight, calculateStartTime } from '../utils/Formatter';
+import { calculateCardHeight } from '../utils/Formatter';
 import Task from './Task';
 import { renderBreaks } from './Break';
 
@@ -34,12 +34,10 @@ class TaskContainer extends Component {
 
 
   addCard = (height, title, duration, dropY) => {
-    const { scrollHeight } = this.props;
     const cardStyle = { ...styles.card };
     cardStyle.height = height;
-    const startTime = calculateStartTime(dropY, scrollHeight);
 
-    this.createNewCardAndAddToStack(dropY, cardStyle, title, duration, startTime);
+    this.createNewCardAndAddToStack(dropY, cardStyle, title, duration);
   }
 
 
@@ -63,7 +61,7 @@ class TaskContainer extends Component {
 
     if (elevatedIndex !== -1) return cards;
 
-    const breaks = renderBreaks(tasks);
+    const breaks = renderBreaks(tasks, scrollHeight);
 
     cards = [...cards, ...breaks];
 

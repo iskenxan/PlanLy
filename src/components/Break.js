@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import moment from 'moment';
-import { getDurationText } from '../utils/Formatter';
+import { getDurationText, calculateStartTime } from '../utils/Formatter';
 import { LIGHT_BLUE, PALE_BLUE } from '../colors';
 
 
@@ -41,13 +41,11 @@ const getTaskTimes = (tasks) => {
     const {
       y,
       style: { height },
-      startTime,
       duration,
     } = task;
     return {
       y,
       height,
-      startTime,
       duration,
     };
   });
@@ -58,7 +56,7 @@ const getTaskTimes = (tasks) => {
 };
 
 
-const renderBreaks = (tasks) => {
+const renderBreaks = (tasks, scrollHeight) => {
   const breaks = [];
   const taskTimes = getTaskTimes(tasks);
 
@@ -66,12 +64,14 @@ const renderBreaks = (tasks) => {
     const {
       y: firstTaskY,
       height: startHeight,
-      startTime: firstTaskStart,
       duration,
     } = taskTimes[i];
-    const { y: endY, startTime: nextTaskStart } = taskTimes[i + 1];
+    const firstTaskStart = calculateStartTime(firstTaskY, scrollHeight);
+
+    const { y: nextTaskY } = taskTimes[i + 1];
     const breakY = firstTaskY + startHeight;
-    const height = endY - breakY;
+    const height = nextTaskY - breakY;
+    const nextTaskStart = calculateStartTime(nextTaskY, scrollHeight);
 
     const startMoment = moment(firstTaskStart, ['h:mm A']);
     startMoment.add(duration, 'm');
