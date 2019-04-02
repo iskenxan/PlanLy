@@ -1,3 +1,5 @@
+import _ from 'lodash';
+
 import {
   ADD_TASK, REMOVE_TASK, UPDATE_TASK, SET_CURRENT_DAY,
 } from '../actions/TasksAction';
@@ -69,8 +71,23 @@ const TaskReducer = (state = initialState, action) => {
       const { currentDay } = state;
       const day = { ...state.weekPlan[currentDay] };
       const task = action.payload;
-      const newTasks = { ...day.tasks };
+      let newTasks = { ...day.tasks };
+      const oldTask = newTasks[task.index];
+      const { y: oldY } = oldTask;
+      const newY = task.y;
+      const difference = newY - oldY;
       newTasks[task.index] = task;
+
+
+      newTasks = _.mapValues(newTasks, (t) => {
+        if (t.index > task.index) {
+          const newT = t;
+          newT.y += difference;
+          return newT;
+        }
+        return t;
+      });
+
       day.tasks = newTasks;
 
       return getUpdatedState(state, currentDay, day);
@@ -82,6 +99,11 @@ const TaskReducer = (state = initialState, action) => {
     default:
       return state;
   }
+};
+
+
+const adjustFollowingTasks = () => {
+
 };
 
 export default TaskReducer;

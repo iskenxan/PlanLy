@@ -46,13 +46,13 @@ class Task extends Component {
 
   componentWillReceiveProps(nextProps) {
     let isElevated = false;
-    const { drag: { elevatedIndex } } = nextProps;
+    const { drag: { elevatedIndex }, data: { y: newY } } = nextProps;
     const { data: { index } } = this.props;
 
     if (elevatedIndex === index) {
       isElevated = true;
     }
-
+    this.position.setValue({ x: 0, y: newY });
     this.setState({ isElevated });
   }
 

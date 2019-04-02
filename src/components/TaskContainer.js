@@ -61,7 +61,6 @@ class TaskContainer extends Component {
           scrollHeight={scrollHeight} />
       ));
 
-
     if (elevatedIndex !== -1) return cards;
 
     const breaks = renderBreaks(tasks);

@@ -9,6 +9,7 @@
     "debug-device": "adb shell input keyevent 82"
   },
   "dependencies": {
+    "lodash": "^4.17.11",
     "moment": "^2.24.0",
     "native-base": "^2.12.1",
     "react": "16.6.3",
