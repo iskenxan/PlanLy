@@ -61,6 +61,7 @@ class Task extends Component {
     const {
       drag, tasks,
       updateTask: updateTaskAction,
+      settings: { smartAdjustments },
     } = this.props;
     const { elevatedIndex } = drag;
     const elevatedTask = tasks[elevatedIndex];
@@ -74,14 +75,14 @@ class Task extends Component {
     const newTask = { ...elevatedTask };
 
 
-    if (!available) {
+    if (!available && !smartAdjustments) {
       ToastAndroid.show('Can\'t overlap existing tasks!', ToastAndroid.SHORT);
       this.position.setValue({ x: 0, y: y - gestureY });
     } else {
       newTask.y = y;
     }
 
-    updateTaskAction(newTask);
+    updateTaskAction(newTask, smartAdjustments);
   }
 
 
@@ -180,6 +181,7 @@ class Task extends Component {
       data,
       updateTask: updateTaskAction,
       scrollHeight,
+      settings: { smartAdjustments },
       tasks,
     } = this.props;
 
@@ -200,7 +202,7 @@ class Task extends Component {
     newData.duration = duration;
     newData.style.height = newHeight;
 
-    updateTaskAction(newData);
+    updateTaskAction(newData, smartAdjustments);
     return this.setState({ overlayVisible: false });
   }
 
@@ -302,6 +304,7 @@ function mapStateToProps(state) {
   return {
     drag: state.drag,
     tasks,
+    settings: state.settings,
   };
 }
 

@@ -58,7 +58,7 @@ export default function SettingsOverlay({
           color: LIGHT_GRAY,
           marginBottom: 20,
         }}>
-          Changing time or duration for a task will cause the
+          Changing time for a task will cause the
            following tasks to also adopt the change.
         </Text>
 

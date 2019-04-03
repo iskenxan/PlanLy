@@ -70,10 +70,16 @@ const TaskReducer = (state = initialState, action) => {
     case UPDATE_TASK: {
       const { currentDay } = state;
       const day = { ...state.weekPlan[currentDay] };
-      const task = action.payload;
+      const { task, smartAdjustmentsOn } = action.payload;
       let newTasks = { ...day.tasks };
 
-      newTasks = adjustFollowingTasks(newTasks, task);
+      const difference = getYDifference(newTasks, task);
+      if (difference >= 1500) return state; // only glitch can make this happen
+
+      if (smartAdjustmentsOn) {
+        newTasks = adjustFollowingTasks(newTasks, task);
+      }
+
       newTasks[task.index] = task;
 
       day.tasks = newTasks;
@@ -92,10 +98,7 @@ const TaskReducer = (state = initialState, action) => {
 
 const adjustFollowingTasks = (tasks, task) => {
   let newTasks = tasks;
-  const oldTask = newTasks[task.index];
-  const { y: oldY } = oldTask;
-  const newY = task.y;
-  const difference = newY - oldY;
+  const difference = getYDifference(tasks, task);
   newTasks = _.mapValues(newTasks, (t) => {
     if (t.index > task.index) {
       const newT = t;
@@ -106,6 +109,16 @@ const adjustFollowingTasks = (tasks, task) => {
   });
 
   return newTasks;
+};
+
+
+const getYDifference = (tasks, task) => {
+  const oldTask = tasks[task.index];
+  const { y: oldY } = oldTask;
+  const newY = task.y;
+  const difference = newY - oldY;
+
+  return difference;
 };
 
 export default TaskReducer;

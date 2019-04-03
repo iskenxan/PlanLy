@@ -21,7 +21,10 @@ export const removeTask = index => ({
 });
 
 
-export const updateTask = task => ({
+export const updateTask = (task, smartAdjustmentsOn) => ({
   type: UPDATE_TASK,
-  payload: task,
+  payload: {
+    task,
+    smartAdjustmentsOn,
+  },
 });
