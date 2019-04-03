@@ -17,6 +17,9 @@ import {
   MINUTES_DAY,
 } from '../utils/Formatter';
 import { BG_BLUE } from '../colors';
+import {
+  createNotification,
+} from '../utils/PushNotifications';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
