@@ -17,9 +17,6 @@ import {
   MINUTES_DAY,
 } from '../utils/Formatter';
 import { BG_BLUE } from '../colors';
-import {
-  createNotification,
-} from '../utils/PushNotifications';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
@@ -34,6 +31,7 @@ class Root extends Component {
       dropY: -1,
       scrollHeight: 0,
     };
+
 
     this.scrollY = 0;
   }
@@ -84,7 +82,9 @@ class Root extends Component {
 
     return (
       <View style={{ flex: 1, backgroundColor: BG_BLUE }}>
-        <Header />
+        <Header
+          scrollHeight={scrollHeight}
+         />
         <ScrollView
           ref={(ref) => { this.scroll = ref; }}
           contentContainerStyle={styles.scroll}

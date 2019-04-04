@@ -4,10 +4,16 @@ import { Icon } from 'react-native-elements';
 import { ActionSheet } from 'native-base';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { setCurrentDay } from '../actions/TasksAction';
+import _ from 'lodash';
+import { setCurrentDay, setTaskNotificationId } from '../actions/TasksAction';
 import { toggleSettings } from '../actions/SettingsActions';
 import { DARK_BLUE } from '../colors';
 import SettingsOverlay from './SettingsOverlay';
+import {
+  cancelAllNotifications,
+  createTaskNotification,
+} from '../utils/PushNotifications';
+import { calculateStartTime } from '../utils/Formatter';
 
 
 const SHEET = [
@@ -55,9 +61,36 @@ class Header extends Component {
   }
 
 
+  addNotificationForTasks = (tasks, day, scrollHeight) => {
+    _.mapKeys(tasks, (task) => {
+      const { setTaskNotificationId: setTaskNotificationIdAction } = this.props;
+      const { y, title } = task;
+      const startTime = calculateStartTime(y, scrollHeight);
+      console.log({ startTime, title });
+      const notificationId = createTaskNotification(day, startTime, title);
+      setTaskNotificationIdAction();
+    });
+  }
+
+
+  addNotificationsForAllTasks = () => {
+    const { weekPlan, scrollHeight } = this.props;
+    _.mapKeys(weekPlan, (weekDay, key) => {
+      const day = key;
+      const { tasks } = weekDay;
+      this.addNotificationForTasks(tasks, day, scrollHeight);
+    });
+  }
+
+
   toggleNotifications = (isOn) => {
     const { toggleSettings: toggleSettingsAction } = this.props;
     toggleSettingsAction('notifications', isOn);
+    if (!isOn) {
+      cancelAllNotifications();
+    } else {
+      this.addNotificationsForAllTasks();
+    }
   }
 
 
@@ -147,11 +180,13 @@ const styles = {
 const mapStateToProps = state => ({
   currentDay: state.taskData.currentDay,
   settings: state.settings,
+  weekPlan: state.taskData.weekPlan,
 });
 
 const mapDispatchToProps = dispatch => bindActionCreators({
   setCurrentDay,
   toggleSettings,
+  setTaskNotificationId,
 }, dispatch);
 
 
