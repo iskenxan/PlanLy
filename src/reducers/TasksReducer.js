@@ -1,7 +1,10 @@
 import _ from 'lodash';
 
 import {
-  ADD_TASK, REMOVE_TASK, UPDATE_TASK, SET_CURRENT_DAY,
+  ADD_TASK,
+  REMOVE_TASK,
+  UPDATE_TASK,
+  SET_CURRENT_DAY,
 } from '../actions/TasksAction';
 
 const initialState = {
@@ -100,7 +103,7 @@ const adjustFollowingTasks = (tasks, task) => {
   let newTasks = tasks;
   const difference = getYDifference(tasks, task);
   newTasks = _.mapValues(newTasks, (t) => {
-    if (t.index > task.index) {
+    if (t.y > task.y) {
       const newT = t;
       newT.y += difference;
       return newT;

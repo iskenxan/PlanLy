@@ -28,6 +28,10 @@ import {
 import { removeTask, updateTask } from '../actions/TasksAction';
 import { setElevatedIndex } from '../actions/DragAnimationActions';
 import EditOverlay from './EditTaskOverlay';
+import {
+  cancelAllNotifications,
+  addNotificationsForAllTasks,
+} from '../utils/PushNotifications';
 
 
 class Task extends Component {
@@ -46,8 +50,13 @@ class Task extends Component {
 
   componentWillReceiveProps(nextProps) {
     let isElevated = false;
-    const { drag: { elevatedIndex }, data: { y: newY } } = nextProps;
-    const { data: { index } } = this.props;
+    const {
+      drag: { elevatedIndex },
+      data: { y: newY },
+    } = nextProps;
+    const {
+      data: { index },
+    } = this.props;
 
     if (elevatedIndex === index) {
       isElevated = true;
@@ -127,7 +136,10 @@ class Task extends Component {
 
 
   onDelete = () => {
-    const { data: { index }, removeTask: removeTaskAction } = this.props;
+    const {
+      data: { index },
+      removeTask: removeTaskAction,
+    } = this.props;
     removeTaskAction(index);
   }
 
@@ -305,6 +317,8 @@ function mapStateToProps(state) {
     drag: state.drag,
     tasks,
     settings: state.settings,
+    currentDay,
+    weekPlan,
   };
 }
 

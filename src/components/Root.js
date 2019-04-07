@@ -66,7 +66,11 @@ class Root extends Component {
   handleScrollContentSizeChange = (width, height) => {
     this.setState({ scrollHeight: height });
     InteractionManager.runAfterInteractions(() => {
-      const y = height / MINUTES_DAY * 7 * 60;
+      const date = new Date();
+      const currentMinutes = date.getMinutes();
+      const currentHour = date.getHours();
+      const y = height / MINUTES_DAY * (currentHour * 60 + currentMinutes);
+      console.log({ currentMinutes, currentHour, y });
 
       this.scroll.scrollTo({ y, x: 0, animated: false });
     });

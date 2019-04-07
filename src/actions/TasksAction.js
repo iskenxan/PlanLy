@@ -21,16 +21,6 @@ export const removeTask = index => ({
   payload: index,
 });
 
-//TODO add this to reducer and use in the Header.js
-export const setTaskNotificationId = (day, taskId, notificationId) => ({
-  type: SET_TASK_NOTIFICATION,
-  payload: {
-    day,
-    taskId,
-    notificationId,
-  },
-});
-
 
 export const updateTask = (task, smartAdjustmentsOn) => ({
   type: UPDATE_TASK,

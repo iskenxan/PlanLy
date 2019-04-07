@@ -1,5 +1,7 @@
 import PushNotification from 'react-native-push-notification';
 import moment from 'moment';
+import _ from 'lodash';
+import { calculateStartTime } from './Formatter';
 import {
   ACCENT_ORANGE,
 } from '../colors';
@@ -92,6 +94,25 @@ export const createTaskNotification = (day, startTime, title) => {
   PushNotification.localNotificationSchedule(settings);
 
   return id;
+};
+
+
+const addNotificationForTasks = (tasks, day, scrollHeight) => {
+  _.mapKeys(tasks, (task) => {
+    const { y, title } = task;
+    const startTime = calculateStartTime(y, scrollHeight);
+    createTaskNotification(day, startTime, title);
+  });
+};
+
+
+export const addNotificationsForAllTasks = (weekPlan,
+  scrollHeight) => {
+  _.mapKeys(weekPlan, (weekDay, key) => {
+    const day = key;
+    const { tasks } = weekDay;
+    addNotificationForTasks(tasks, day, scrollHeight);
+  });
 };
 
 

@@ -5,7 +5,7 @@ import {
 
 const initialState = {
   notifications: false,
-  smartAdjustments: false,
+  smartAdjustments: true,
 };
 
 

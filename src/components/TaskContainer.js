@@ -4,31 +4,73 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import _ from 'lodash';
 
 import { addTask, updateTask } from '../actions/TasksAction';
 import { onDropWidth, setElevatedIndex } from '../actions/DragAnimationActions';
-import { calculateCardHeight } from '../utils/Formatter';
+import {
+  calculateCardHeight,
+  calculateStartTime,
+} from '../utils/Formatter';
 import Task from './Task';
 import { renderBreaks } from './Break';
+import {
+  createTaskNotification,
+  addNotificationsForAllTasks,
+  cancelAllNotifications,
+} from '../utils/PushNotifications';
 
 
 class TaskContainer extends Component {
-  componentWillReceiveProps(props) {
-    const { taskDropped, drag } = this.props;
-    if (props.taskDropped && !taskDropped) {
-      const { scrollHeight } = props;
+  componentWillReceiveProps(nextProps) {
+    const {
+      taskDropped,
+      drag,
+      settings: { notifications },
+      scrollHeight,
+      weekPlan,
+    } = this.props;
+    const {
+      taskDropped: nextTaskDropped,
+      dropY: nextDropY,
+      weekPlan: nextWeekPlan,
+    } = nextProps;
+    if (nextTaskDropped && !taskDropped) {
       const { duration, title } = drag;
       const height = calculateCardHeight(duration, scrollHeight);
-      this.addCard(height, title, duration, props.dropY);
+      this.addCard(height, title, duration, nextDropY);
+    }
+
+    if (notifications && !_.isEqual(nextWeekPlan, weekPlan)) {
+      console.log('update notifications');
+      cancelAllNotifications();
+      addNotificationsForAllTasks(nextWeekPlan, scrollHeight);
     }
   }
 
 
-  createNewCardAndAddToStack = (y, cardStyle, title, duration, startTime) => {
-    const { currentIndex: index, addTask: addTaskAction } = this.props;
+  createNewCardAndAddToStack = (y, style, title, duration) => {
+    const {
+      currentIndex: index,
+      addTask: addTaskAction,
+      currentDay,
+      scrollHeight,
+      settings: { notifications },
+    } = this.props;
+    const startTime = calculateStartTime(y, scrollHeight);
     const task = {
-      index, title, duration, startTime, y, style: cardStyle,
+      index,
+      title,
+      duration,
+      startTime,
+      y,
+      style,
     };
+
+    if (notifications) {
+      createTaskNotification(currentDay, startTime, title);
+    }
+
     addTaskAction(task);
   }
 
@@ -101,6 +143,9 @@ function mapStateToProps(state) {
     drag: state.drag,
     tasks: weekPlan[currentDay].tasks,
     currentIndex: weekPlan[currentDay].currentIndex,
+    currentDay,
+    settings: state.settings,
+    weekPlan,
   };
 }
 
