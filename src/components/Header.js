@@ -5,10 +5,11 @@ import { ActionSheet } from 'native-base';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
-import { setCurrentDay } from '../actions/TasksAction';
+import { setCurrentDay, removeAllTasks } from '../actions/TasksAction';
 import { toggleSettings } from '../actions/SettingsActions';
 import { DARK_BLUE } from '../colors';
 import SettingsOverlay from './SettingsOverlay';
+import DeleteOverlay from './DeleteAllOverlay';
 import {
   cancelAllNotifications,
   addNotificationsForAllTasks,
@@ -31,8 +32,10 @@ class Header extends Component {
 
     this.state = {
       settingsOverlayVisible: false,
+      deleteOverlayVisible: false,
     };
   }
+
 
   onPressed = () => {
     ActionSheet.show({
@@ -75,13 +78,25 @@ class Header extends Component {
   }
 
 
+  onDeleteAllTasks = () => {
+    const { removeAllTasks: removeAllTasksAction } = this.props;
+    removeAllTasksAction();
+    this.setState({ deleteOverlayVisible: false });
+  }
+
+
   render() {
-    const { arrowDownIcon, dropDownAction, settingsIcon } = styles;
+    const {
+      arrowDownIcon,
+      dropDownAction,
+      settingsIcon,
+      deleteIcon,
+    } = styles;
     const {
       currentDay,
       settings: { smartAdjustments, notifications },
     } = this.props;
-    const { settingsOverlayVisible } = this.state;
+    const { settingsOverlayVisible, deleteOverlayVisible } = this.state;
     return (
       <View style={{
         minHeight: 60,
@@ -98,6 +113,12 @@ class Header extends Component {
             justifyContent: 'center',
             alignItems: 'center',
           }}>
+          <Icon
+            onPress={() => this.setState({ deleteOverlayVisible: true })}
+            type="ionicon"
+            name="ios-trash"
+            containerStyle={deleteIcon}
+            color={DARK_BLUE} />
           <TouchableOpacity
             style={dropDownAction}
             onPress={this.onPressed}>
@@ -128,6 +149,11 @@ class Header extends Component {
           toggleAdjustments={this.toggleSmartAdjustments}
           onBackdropPress={() => this.toggleSettingsVisibility(false)}
           isVisible={settingsOverlayVisible} />
+        <DeleteOverlay
+          isVisible={deleteOverlayVisible}
+          onDelete={this.onDeleteAllTasks}
+          onCancel={() => this.setState({ deleteOverlayVisible: false })}
+         />
       </View>
     );
   }
@@ -155,6 +181,14 @@ const styles = {
     top: 8,
     height: 50,
   },
+  deleteIcon: {
+    width: 50,
+    padding: 10,
+    position: 'absolute',
+    left: 5,
+    top: 8,
+    height: 50,
+  },
 };
 
 
@@ -167,6 +201,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => bindActionCreators({
   setCurrentDay,
   toggleSettings,
+  removeAllTasks,
 }, dispatch);
 
 

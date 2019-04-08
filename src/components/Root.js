@@ -40,9 +40,12 @@ class Root extends Component {
   onTaskDropped = (gestureY) => {
     const { drag: { duration }, tasks } = this.props;
     const { scrollHeight } = this.state;
-    const panelY = SCREEN_HEIGHT - 230 - 60 + 30;
+    const panelY = SCREEN_HEIGHT - 230 - 60 + 46;
     const y = this.scrollY + panelY + gestureY;
     const dropHeight = calculateCardHeight(duration, scrollHeight);
+    if (y + dropHeight > scrollHeight) {
+      return ToastAndroid.show('Can\'t go over the limit!', ToastAndroid.SHORT);
+    }
     const available = checkIfTimeAvailable(y, dropHeight, tasks);
     if (available) {
       return this.setState({ taskDropped: true, dropY: y });
@@ -70,7 +73,7 @@ class Root extends Component {
       const currentMinutes = date.getMinutes();
       const currentHour = date.getHours();
       const y = height / MINUTES_DAY * (currentHour * 60 + currentMinutes);
-      console.log({ currentMinutes, currentHour, y });
+
 
       this.scroll.scrollTo({ y, x: 0, animated: false });
     });
@@ -113,8 +116,6 @@ class Root extends Component {
 
 const styles = {
   scroll: {
-    paddingTop: 16,
-    paddingBottom: 16,
     paddingLeft: 10,
     paddingRight: 10,
     backgroundColor: BG_BLUE,

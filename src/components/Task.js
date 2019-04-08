@@ -29,9 +29,9 @@ import { removeTask, updateTask } from '../actions/TasksAction';
 import { setElevatedIndex } from '../actions/DragAnimationActions';
 import EditOverlay from './EditTaskOverlay';
 import {
-  cancelAllNotifications,
-  addNotificationsForAllTasks,
-} from '../utils/PushNotifications';
+  MED_BLUE,
+  DARK_BLUE,
+} from '../colors';
 
 
 class Task extends Component {
@@ -71,6 +71,7 @@ class Task extends Component {
       drag, tasks,
       updateTask: updateTaskAction,
       settings: { smartAdjustments },
+      scrollHeight,
     } = this.props;
     const { elevatedIndex } = drag;
     const elevatedTask = tasks[elevatedIndex];
@@ -83,7 +84,10 @@ class Task extends Component {
     const available = checkIfTimeAvailable(y, height, tasksCopy);
     const newTask = { ...elevatedTask };
 
-
+    if (y + height > scrollHeight) {
+      ToastAndroid.show('Can\'t go over the limit!', ToastAndroid.SHORT);
+      return this.position.setValue({ x: 0, y: y - gestureY });
+    }
     if (!available && !smartAdjustments) {
       ToastAndroid.show('Can\'t overlap existing tasks!', ToastAndroid.SHORT);
       this.position.setValue({ x: 0, y: y - gestureY });
@@ -200,6 +204,10 @@ class Task extends Component {
     const newHeight = calculateCardHeight(duration, scrollHeight);
 
     const { y } = data;
+    if (y + newHeight > scrollHeight) {
+      ToastAndroid.show('Can\'t go over the limit!', ToastAndroid.SHORT);
+      return this.setState({ overlayVisible: false });
+    }
     const tasksCopy = { ...tasks };
     delete tasksCopy[data.index];
 
@@ -238,7 +246,10 @@ class Task extends Component {
     endMoment.add(duration, 'm');
 
     const endTime = endMoment.format('h:mm a');
-
+    let oneLineTitle = false;
+    if (newStyle.height <= 80) {
+      oneLineTitle = true;
+    }
     return (
       <Animated.View
         key={index}
@@ -248,24 +259,61 @@ class Task extends Component {
           source={DRAG_BTN}
           style={styles.cardDrag} />
         <View style={styles.cardTop}>
-          <Text>{startTime}</Text>
+          <Text style={{
+            marginTop: 5,
+            marginLeft: 10,
+            color: MED_BLUE,
+            fontSize: 8,
+          }}>
+            {startTime}
+          </Text>
           <this.PopupMenu>
             <Icon
+              iconStyle={{
+                padding: 3,
+              }}
               name="more-vert"
               color="#8493A8" />
           </this.PopupMenu>
         </View>
         <View style={styles.cardTitle}>
-          <Text style={{ textAlign: 'center' }}>{title}</Text>
+          {oneLineTitle ? (
+            <Text
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              style={{
+                textAlign: 'center',
+                color: DARK_BLUE,
+                margin: 10,
+              }}>
+              {title}
+            </Text>
+          ) : (
+            <Text style={{
+              textAlign: 'center',
+              margin: 10,
+              color: DARK_BLUE,
+            }}>
+              {title}
+            </Text>
+          )}
         </View>
         <View style={styles.cardBottom}>
           <Text style={{
             alignSelf: 'flex-start',
+            color: MED_BLUE,
+            marginBottom: 5,
+            marginLeft: 10,
+            fontSize: 8,
           }}>
             {endTime}
           </Text>
           <Text style={{
             marginLeft: 'auto',
+            color: MED_BLUE,
+            marginRight: 10,
+            marginBottom: 5,
+            fontSize: 8,
           }}>
             {getDurationText(duration)}
           </Text>
@@ -287,7 +335,7 @@ const styles = {
     flexDirection: 'row',
     justifyContent: 'space-between',
     position: 'relative',
-    height: 20,
+    height: 18,
     alignSelf: 'stretch',
   },
   cardTitle: {

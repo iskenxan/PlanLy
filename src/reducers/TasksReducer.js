@@ -5,6 +5,7 @@ import {
   REMOVE_TASK,
   UPDATE_TASK,
   SET_CURRENT_DAY,
+  REMOVE_ALL_TASKS,
 } from '../actions/TasksAction';
 
 const initialState = {
@@ -67,6 +68,13 @@ const TaskReducer = (state = initialState, action) => {
 
       delete newTasks[index];
       day.tasks = newTasks;
+
+      return getUpdatedState(state, currentDay, day);
+    }
+    case REMOVE_ALL_TASKS: {
+      const { currentDay } = state;
+      const day = { ...state.weekPlan[currentDay] };
+      day.tasks = {};
 
       return getUpdatedState(state, currentDay, day);
     }

@@ -42,7 +42,6 @@ class TaskContainer extends Component {
     }
 
     if (notifications && !_.isEqual(nextWeekPlan, weekPlan)) {
-      console.log('update notifications');
       cancelAllNotifications();
       addNotificationsForAllTasks(nextWeekPlan, scrollHeight);
     }
@@ -130,7 +129,6 @@ const styles = {
     alignItems: 'center',
     left: 5,
     right: 0,
-    padding: 10,
     backgroundColor: '#fff',
     borderRadius: 10,
   },

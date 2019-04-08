@@ -1,7 +1,7 @@
 import moment from 'moment';
 
 
-export const SECONDS_DAY = 87000;
+export const SECONDS_DAY = 86700;
 export const MINUTES_DAY = 1440;
 
 
@@ -22,8 +22,8 @@ export const getDurationText = (value) => {
 
 export const calculateCardHeight = (duration, scrollHeight) => {
   const unit = scrollHeight / MINUTES_DAY;
-  let height = 65;
-  if (duration > 20) {
+  let height = 80;
+  if (duration >= 20) {
     height = unit * duration;
   }
 

@@ -39,7 +39,7 @@ class TimeLine extends Component {
     return times.map((item) => {
       const style = { ...styles.itemContainer };
       if (counter < times.length - 1) {
-        style.marginBottom = 55;
+        style.marginBottom = 65;
       }
       counter += 1;
       if (item.seconds % SECONDS_HOUR === 0) {
@@ -91,10 +91,11 @@ const styles = {
     alignItems: 'center',
   },
   text: {
+    textAlign: 'right',
     fontSize: 9,
     width: 40,
     maxWidth: 40,
-    height: 10,
+    height: 12,
     color: '#8493A8',
   },
   divider: {

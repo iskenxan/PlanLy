@@ -10,7 +10,7 @@ class AddItemCard extends Component {
     super(props);
     this.state = {
       title: '',
-      duration: 0, // minutes
+      duration: 15, // minutes
     };
   }
 
@@ -84,6 +84,7 @@ class AddItemCard extends Component {
 const styles = {
   card: {
     padding: 10,
+    elevation: 5,
     backgroundColor: '#fff',
     borderRadius: 10,
     height: 130,
