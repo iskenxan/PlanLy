@@ -95,7 +95,7 @@ class Task extends Component {
       newTask.y = y;
     }
 
-    updateTaskAction(newTask, smartAdjustments);
+    return updateTaskAction(newTask, smartAdjustments);
   }
 
 

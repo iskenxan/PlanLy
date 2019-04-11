@@ -27,7 +27,6 @@ class AddItemPanel extends Component {
 
     this.widthValue = new Animated.Value(0);
     this.heightValue = new Animated.Value(0);
-    this.fabWidth = new Animated.Value(SCREEN_WIDTH);
     this.position = new Animated.ValueXY();
 
     this.setupPanResponder();
@@ -68,7 +67,6 @@ class AddItemPanel extends Component {
   togglePanel = (isOpen) => {
     const width = isOpen ? SCREEN_WIDTH : 0;
     const height = isOpen ? 230 : 0;
-    const fabOpacity = isOpen ? 0 : SCREEN_WIDTH;
 
     Animated.parallel([
       Animated.timing(
@@ -80,12 +78,6 @@ class AddItemPanel extends Component {
       Animated.timing(
         this.heightValue, {
           toValue: height,
-          duration: 200,
-        },
-      ),
-      Animated.timing(
-        this.fabWidth, {
-          toValue: fabOpacity,
           duration: 200,
         },
       ),
@@ -146,15 +138,12 @@ class AddItemPanel extends Component {
 
   render() {
     return (
-      <View>
+      <View style={{
+        backgroundColor: 'trasnparent',
+      }}>
+        <Fab
+          onPressed={this.onFabPressed} />
         {this.renderPanel()}
-        <Animated.View
-          style={{
-            width: this.fabWidth,
-          }}>
-          <Fab
-            onPressed={this.onFabPressed} />
-        </Animated.View>
       </View>
     );
   }
@@ -165,6 +154,7 @@ const styles = {
   container: {
     width: 0,
     height: 0,
+    backgroundColor: 'trasnparent',
     alignItems: 'center',
   },
   innerContainer: {
@@ -173,6 +163,7 @@ const styles = {
     marginTop: 20,
     paddingTop: 30,
     paddingBottom: 10,
+    backgroundColor: 'trasnparent',
     paddingLeft: 10,
     paddingRight: 10,
     justifyContent: 'space-between',

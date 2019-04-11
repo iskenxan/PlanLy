@@ -6,9 +6,44 @@ import {
 import {
   Input,
   Slider,
+  Icon,
 } from 'react-native-elements';
 import { getDurationText } from '../utils/Formatter';
-import { ACCENT_ORANGE } from '../colors';
+import {
+  ACCENT_ORANGE,
+  DARK_BLUE,
+  LIGHT_BLUE,
+  MED_BLUE,
+} from '../colors';
+
+
+const getNameInput = (name, onNameChanged) => {
+  if (name) {
+    return (
+      <Input
+        value={name}
+        rightIcon={(
+          <Icon
+            onPress={() => onNameChanged('')}
+            size={15}
+            type="material"
+            name="clear"
+            color={MED_BLUE}
+       />
+      )}
+        onChangeText={value => onNameChanged(value)}
+        containerStyle={{ flex: 1, padding: 1 }}
+        inputStyle={styles.input} />
+    );
+  }
+  return (
+    <Input
+      value={name}
+      onChangeText={value => onNameChanged(value)}
+      containerStyle={{ flex: 1, padding: 1 }}
+      inputStyle={styles.input} />
+  );
+};
 
 
 const EditTaskInput = ({
@@ -19,19 +54,17 @@ const EditTaskInput = ({
 }) => (
   <View style={{ flex: 1, width: '100%' }}>
     <View style={styles.centeredContent}>
-      <Text>Title:</Text>
-      <Input
-        value={name}
-        onChangeText={value => onNameChanged(value)}
-        containerStyle={{ flex: 1, padding: 1 }}
-        inputStyle={styles.input} />
+      <Text style={{ color: DARK_BLUE }}>Title:</Text>
+      {getNameInput(name, onNameChanged)}
     </View>
-    <Text style={{ marginTop: 15, alignSelf: 'center' }}>{getDurationText(duration)}</Text>
+    <Text style={{ color: DARK_BLUE, marginTop: 15, alignSelf: 'center' }}>{getDurationText(duration)}</Text>
     <View style={styles.centeredContent}>
-      <Text style={{ marginRight: 10 }}>Duration:</Text>
+      <Text style={{ marginRight: 10, color: DARK_BLUE }}>Duration:</Text>
       <Slider
         thumbTintColor={ACCENT_ORANGE}
         step={5}
+        minimumTrackTintColor={DARK_BLUE}
+        maximumTrackTintColor={LIGHT_BLUE}
         maximumValue={480}
         minimumValue={15}
         value={duration}
@@ -47,6 +80,7 @@ const styles = {
     fontSize: 14,
     maxHeight: 12,
     padding: 1,
+    color: DARK_BLUE,
   },
   slider: {
     flex: 1,

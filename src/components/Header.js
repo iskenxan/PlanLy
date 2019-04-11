@@ -4,6 +4,7 @@ import { Icon } from 'react-native-elements';
 import { ActionSheet } from 'native-base';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import moment from 'moment';
 
 import { setCurrentDay, removeAllTasks } from '../actions/TasksAction';
 import { toggleSettings } from '../actions/SettingsActions';
@@ -34,6 +35,13 @@ class Header extends Component {
       settingsOverlayVisible: false,
       deleteOverlayVisible: false,
     };
+  }
+
+  componentDidMount() {
+    const { setCurrentDay: setCurrentDayAction } = this.props;
+    const weekday = moment().isoWeekday() - 1;
+    const newDay = SHEET[weekday].text;
+    setCurrentDayAction(newDay);
   }
 
 
